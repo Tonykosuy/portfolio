@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Portfolio cá nhân - Nguyễn Trần Tiến Phúc | Sinh viên chuyên ngành Thị trường Chứng khoán UEH & Nhà phát triển FinTech/AI">
+  <meta name="description" id="meta-description" content="Portfolio cá nhân - Nguyễn Trần Tiến Phúc | Sinh viên chuyên ngành Thị trường Chứng khoán UEH & Nhà phát triển FinTech/AI">
   <title>NGUYỄN TRẦN TIẾN PHÚC | Portfolio</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -78,7 +78,8 @@
         const completeLoading = () => {
           if (progressBar) progressBar.style.width = '100.0%';
           if (percentageText) percentageText.textContent = '100';
-          if (loaderText) loaderText.textContent = "Xin chào";
+          const savedLang = localStorage.getItem('portfolio_lang') || 'vi';
+          if (loaderText) loaderText.textContent = savedLang === 'en' ? "Welcome" : "Xin chào";
           setTimeout(() => {
             loaderWrapper.classList.add('loaded');
             document.body.classList.remove('loading');
@@ -133,17 +134,23 @@
     <div class="nav-logo">
       <div class="logo-icon">TP</div>
       <div class="logo-text">
-        <h3>TIẾN PHÚC</h3>
-        <span>— Tài chính & Công nghệ —</span>
+        <h3 data-i18n="nav.logoTitle">TIẾN PHÚC</h3>
+        <span data-i18n="nav.logoSub">— Tài chính & Công nghệ —</span>
       </div>
     </div>
     <ul class="nav-links" id="navLinks">
-      <li><a href="#home" class="active">Trang chủ</a></li>
-      <li><a href="#about">Giới thiệu</a></li>
-      <li><a href="#portfolio">Dự án</a></li>
-      <li><a href="#contact">Liên hệ</a></li>
+      <li><a href="#home" class="active" data-i18n="nav.home">Trang chủ</a></li>
+      <li><a href="#about" data-i18n="nav.about">Giới thiệu</a></li>
+      <li><a href="#portfolio" data-i18n="nav.portfolio">Dự án</a></li>
+      <li><a href="#contact" data-i18n="nav.contact">Liên hệ</a></li>
     </ul>
     <div class="nav-right">
+      <button class="lang-toggle" id="langToggle" onclick="toggleLanguage()" aria-label="Toggle Language" title="Chuyển đổi ngôn ngữ / Switch Language">
+        <i class="fa-solid fa-globe"></i>
+        <span class="lang-opt active" data-lang-opt="vi">VI</span>
+        <span class="lang-divider">/</span>
+        <span class="lang-opt" data-lang-opt="en">EN</span>
+      </button>
       <div class="music-toggle" id="musicToggle" onclick="toggleMusic()">
         <div class="music-disc"><i class="fa-solid fa-compact-disc"></i></div>
         <div class="music-details">
@@ -178,21 +185,21 @@
   <!-- ===== NEON MARQUEE — ABOUT ME ===== -->
   <div class="marquee-wrapper">
     <div class="marquee-track">
-      <span class="marquee-text">ABOUT ME</span>
+      <span class="marquee-text" data-i18n="marquee.about">VỀ BẢN THÂN</span>
       <span class="marquee-dot">✦</span>
-      <span class="marquee-text">ABOUT ME</span>
+      <span class="marquee-text" data-i18n="marquee.about">VỀ BẢN THÂN</span>
       <span class="marquee-dot">✦</span>
-      <span class="marquee-text">ABOUT ME</span>
+      <span class="marquee-text" data-i18n="marquee.about">VỀ BẢN THÂN</span>
       <span class="marquee-dot">✦</span>
-      <span class="marquee-text">ABOUT ME</span>
+      <span class="marquee-text" data-i18n="marquee.about">VỀ BẢN THÂN</span>
       <span class="marquee-dot">✦</span>
-      <span class="marquee-text">ABOUT ME</span>
+      <span class="marquee-text" data-i18n="marquee.about">VỀ BẢN THÂN</span>
       <span class="marquee-dot">✦</span>
-      <span class="marquee-text">ABOUT ME</span>
+      <span class="marquee-text" data-i18n="marquee.about">VỀ BẢN THÂN</span>
       <span class="marquee-dot">✦</span>
-      <span class="marquee-text">ABOUT ME</span>
+      <span class="marquee-text" data-i18n="marquee.about">VỀ BẢN THÂN</span>
       <span class="marquee-dot">✦</span>
-      <span class="marquee-text">ABOUT ME</span>
+      <span class="marquee-text" data-i18n="marquee.about">VỀ BẢN THÂN</span>
       <span class="marquee-dot">✦</span>
     </div>
   </div>
@@ -200,8 +207,8 @@
   <!-- ===== ABOUT — Van Gogh Background ===== -->
   <section class="about has-bg glass-section" id="about">
     <div class="section-header reveal">
-      <div class="section-label">✦ Đam mê Tài chính & Lập trình Công nghệ ✦</div>
-      <h2 class="section-title split-text">XIN CHÀO, TÔI LÀ</h2>
+      <div class="section-label" data-i18n="about.label">✦ Đam mê Tài chính & Lập trình Công nghệ ✦</div>
+      <h2 class="section-title split-text" data-i18n-split="about.title">XIN CHÀO, TÔI LÀ</h2>
     </div>
     <div class="about-container">
       <div class="bento-grid">
@@ -210,15 +217,15 @@
         <div class="bento-item bento-large spotlight-card">
           <div class="spotlight-glow"></div>
           <div class="about-info" style="padding: 2.5rem; height: 100%;">
-            <h3 class="neon-gold" style="font-size: 2.0rem; margin-bottom: 1rem;">NGUYỄN TRẦN TIẾN PHÚC</h3>
-            <p style="font-size: 1.05rem; line-height: 1.8;">
+            <h3 class="neon-gold" style="font-size: 2.0rem; margin-bottom: 1rem;" data-i18n="about.name">NGUYỄN TRẦN TIẾN PHÚC</h3>
+            <p style="font-size: 1.05rem; line-height: 1.8;" data-i18n-html="about.bio">
               Tôi là sinh viên ngành <strong>Thị trường Chứng khoán</strong> tại UEH (Khóa K51) nhưng sở hữu niềm đam mê lớn với Công nghệ và Đổi mới sáng tạo. Tôi luôn hướng tới việc kết hợp kiến thức Tài chính với năng lực Lập trình để tạo ra các giải pháp FinTech tối ưu, đồng thời có tư duy mạnh mẽ về các dự án công nghệ tạo tác động xã hội.
             </p>
             <div class="quote-box" style="margin-top: 1.5rem;">
-              <p>"Kết hợp Tài chính và Công nghệ để kiến tạo những giá trị xã hội bền vững."</p>
+              <p data-i18n="about.quote">"Kết hợp Tài chính và Công nghệ để kiến tạo những giá trị xã hội bền vững."</p>
             </div>
             <div class="btn-group" style="margin-top: 1.5rem;">
-              <button class="btn btn-filled"><i class="fa-solid fa-download"></i> Tải CV</button>
+              <button class="btn btn-filled" data-i18n-html="about.downloadCv"><i class="fa-solid fa-download"></i> Tải CV</button>
             </div>
           </div>
         </div>
@@ -226,7 +233,7 @@
         <!-- Bento item: Portrait Image -->
         <div class="bento-item bento-wide spotlight-card" style="padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center;">
           <div class="spotlight-glow"></div>
-          <img src="asset/avatar.png" alt="Chân dung" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit;">
+          <img src="asset/avatar.jpg" alt="Chân dung" data-i18n-alt="about.portraitAlt" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit;">
         </div>
 
         <!-- Bento item: Decorative Star Border -->
@@ -235,7 +242,7 @@
             style="padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;">
             <i class="fa-solid fa-wand-magic-sparkles neon-gold" style="font-size: 2.5rem;"></i>
             <span
-              style="font-family: var(--font-accent); color: var(--neon-gold); text-align: center;">Creativity</span>
+              style="font-family: var(--font-accent); color: var(--neon-gold); text-align: center;" data-i18n="about.creativity">Sáng tạo</span>
           </div>
         </div>
 
@@ -243,12 +250,12 @@
         <div class="bento-item spotlight-card">
           <div class="spotlight-glow"></div>
           <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-            <h4 class="neon-amber" style="font-family: var(--font-accent);">Kỹ Năng Nổi Bật</h4>
+            <h4 class="neon-amber" style="font-family: var(--font-accent);" data-i18n="about.skillsTitle">Kỹ Năng Nổi Bật</h4>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              <span class="project-tags">Phân tích Chứng khoán</span>
-              <span class="project-tags">Lập trình FinTech/AI</span>
-              <span class="project-tags">Xử lý dữ liệu</span>
-              <span class="project-tags">Thiết kế UI/UX</span>
+              <span class="project-tags" data-i18n="about.skill1">Phân tích Chứng khoán</span>
+              <span class="project-tags" data-i18n="about.skill2">Lập trình FinTech/AI</span>
+              <span class="project-tags" data-i18n="about.skill3">Xử lý dữ liệu</span>
+              <span class="project-tags" data-i18n="about.skill4">Thiết kế UI/UX</span>
             </div>
           </div>
         </div>
@@ -282,7 +289,7 @@
                 <div class="ticket-icon">📈</div>
                 <div class="ticket-body">
                   <h3>FINANCE & STOCK</h3>
-                  <p>Phân tích thị trường chứng khoán</p>
+                  <p data-i18n="journey.ticket1Desc">Phân tích thị trường chứng khoán</p>
                 </div>
                 <div class="ticket-divider"></div>
                 <div class="ticket-footer">NO. 001 — FINTECH</div>
@@ -300,7 +307,7 @@
                 <div class="ticket-icon">🤖</div>
                 <div class="ticket-body">
                   <h3>AI CHATBOT</h3>
-                  <p>Tự động hóa & xử lý dữ liệu</p>
+                  <p data-i18n="journey.ticket2Desc">Tự động hóa & xử lý dữ liệu</p>
                 </div>
                 <div class="ticket-divider"></div>
                 <div class="ticket-footer">NO. 002 — FINTECH</div>
@@ -318,7 +325,7 @@
                 <div class="ticket-icon">🎨</div>
                 <div class="ticket-body">
                   <h3>UI/UX DESIGN</h3>
-                  <p>Giao diện Dashboard khẩn cấp</p>
+                  <p data-i18n="journey.ticket3Desc">Giao diện Dashboard khẩn cấp</p>
                 </div>
                 <div class="ticket-divider"></div>
                 <div class="ticket-footer">NO. 003 — FINTECH</div>
@@ -336,7 +343,7 @@
                 <div class="ticket-icon">👥</div>
                 <div class="ticket-body">
                   <h3>LEADERSHIP</h3>
-                  <p>Trưởng nhóm & điều phối dự án</p>
+                  <p data-i18n="journey.ticket4Desc">Trưởng nhóm & điều phối dự án</p>
                 </div>
                 <div class="ticket-divider"></div>
                 <div class="ticket-footer">NO. 004 — FINTECH</div>
@@ -354,8 +361,8 @@
                   <img src="asset/notebook-cover-new.png" alt="Vintage Notebook" class="cover-image">
                   <div class="cover-overlay" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #F3E5AB; text-align: center; background: rgba(0,0,0,0.25);">
                     <i class="fa-solid fa-book-journal-whills" style="font-size: 2rem; margin-bottom: 1rem; color: var(--color-accent, #d4af37);"></i>
-                    <h3 style="font-family: var(--font-accent, serif); font-size: 2.2rem; letter-spacing: 2px; text-transform: uppercase; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">NHẬT KÝ CỦA TÔI</h3>
-                    <p style="font-family: serif; font-style: italic; font-size: 1rem; margin-top: 15px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">~ Click to open ~</p>
+                    <h3 style="font-family: var(--font-accent, serif); font-size: 2.2rem; letter-spacing: 2px; text-transform: uppercase; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);" data-i18n="journey.notebookTitle">NHẬT KÝ CỦA TÔI</h3>
+                    <p style="font-family: serif; font-style: italic; font-size: 1rem; margin-top: 15px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);" data-i18n="journey.notebookHint">~ Nhấn để mở ~</p>
                   </div>
                 </div>
                 <div class="cover-back"></div>
@@ -375,26 +382,26 @@
 
               <div class="notebook-pages">
                 <div class="page page-left">
-                  <h4>Kinh Nghiệm</h4>
+                  <h4 data-i18n="journey.expTitle">Kinh Nghiệm</h4>
                   <div class="entry">
                     <span class="year">2025</span>
-                    <p>Sáng lập & Phát triển dự án VNDEER</p>
+                    <p data-i18n="journey.exp1">Sáng lập & Phát triển dự án VNDEER</p>
                   </div>
                   <div class="entry">
                     <span class="year">2025</span>
-                    <p>Phát triển AI Chatbot Chứng khoán</p>
+                    <p data-i18n="journey.exp2">Phát triển AI Chatbot Chứng khoán</p>
                   </div>
                   <div class="entry">
                     <span class="year">2025</span>
-                    <p>Trưởng nhóm Bond & Benefit (B&B)</p>
+                    <p data-i18n="journey.exp3">Trưởng nhóm Bond & Benefit (B&B)</p>
                   </div>
                 </div>
                 <div class="page page-right">
-                  <h4>Kỹ Năng</h4>
+                  <h4 data-i18n="journey.skillsTitle">Kỹ Năng</h4>
                   <div class="doodle-grid">
-                    <div class="doodle"><i class="fa-solid fa-chart-line"></i><span>Tài chính</span></div>
-                    <div class="doodle"><i class="fa-solid fa-brain"></i><span>AI Code</span></div>
-                    <div class="doodle"><i class="fa-solid fa-users"></i><span>Lãnh đạo</span></div>
+                    <div class="doodle"><i class="fa-solid fa-chart-line"></i><span data-i18n="journey.doodle1">Tài chính</span></div>
+                    <div class="doodle"><i class="fa-solid fa-brain"></i><span data-i18n="journey.doodle2">AI Code</span></div>
+                    <div class="doodle"><i class="fa-solid fa-users"></i><span data-i18n="journey.doodle3">Lãnh đạo</span></div>
                   </div>
                 </div>
               </div>
@@ -417,8 +424,8 @@
 
 
       <div class="section-header reveal">
-        <div class="section-label">Kho lưu trữ</div>
-        <h2 class="section-title split-text"><span class="accent">DỰ ÁN</span> NỔI BẬT</h2>
+        <div class="section-label" data-i18n="portfolio.label">Kho lưu trữ</div>
+        <h2 class="section-title split-text" data-i18n-split="portfolio.title"><span class="accent">DỰ ÁN</span> NỔI BẬT</h2>
       </div>
 
       <!-- Projects Carousel -->
@@ -429,40 +436,40 @@
           <!-- VNDEER Project -->
           <div class="project-card reveal spotlight-card" style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; margin-bottom: 0;">
             <div class="spotlight-glow"></div>
-            <img src="asset/project-web.png" alt="Dự án VNDEER" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
+            <img src="asset/project-web.png" alt="Dự án VNDEER" data-i18n-alt="portfolio.proj1Title" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
             <div class="project-card-body" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
-              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;">Dự án VNDEER</h4>
-              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;">Nền tảng công nghệ hỗ trợ điều phối cứu trợ và sơ tán khẩn cấp khi gặp thiên tai tại Việt Nam.</p>
+              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;" data-i18n="portfolio.proj1Title">Dự án VNDEER</h4>
+              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;" data-i18n="portfolio.proj1Desc">Nền tảng công nghệ hỗ trợ điều phối cứu trợ và sơ tán khẩn cấp khi gặp thiên tai tại Việt Nam.</p>
               <div class="project-tags" style="display: flex; flex-wrap: wrap; gap: 8px;"><span>Founder & Dev</span><span>Data Arch</span><span>Dashboard</span><span>AI/UI/UX</span></div>
             </div>
           </div>
           <!-- AI Chatbot Project -->
           <div class="project-card reveal spotlight-card" style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; margin-bottom: 0;">
             <div class="spotlight-glow"></div>
-            <img src="asset/project-api.png" alt="AI Chatbot Chứng khoán" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
+            <img src="asset/project-api.png" alt="AI Chatbot Chứng khoán" data-i18n-alt="portfolio.proj2Title" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
             <div class="project-card-body" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
-              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;">AI Chatbot Chứng khoán</h4>
-              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;">Công cụ tự động hóa hỗ trợ nhà đầu tư trích xuất thông tin, phân tích dữ liệu thị trường chứng khoán theo thời gian thực.</p>
+              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;" data-i18n="portfolio.proj2Title">AI Chatbot Chứng khoán</h4>
+              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;" data-i18n="portfolio.proj2Desc">Công cụ tự động hóa hỗ trợ nhà đầu tư trích xuất thông tin, phân tích dữ liệu thị trường chứng khoán theo thời gian thực.</p>
               <div class="project-tags" style="display: flex; flex-wrap: wrap; gap: 8px;"><span>Dev / Data Analyst</span><span>FinTech</span><span>Python</span><span>Generative AI</span></div>
             </div>
           </div>
           <!-- UI/UX Dashboard Project -->
           <div class="project-card reveal spotlight-card" style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; margin-bottom: 0;">
             <div class="spotlight-glow"></div>
-            <img src="asset/project-ui-1.png" alt="Dashboard Điều phối VNDEER" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
+            <img src="asset/project-ui-1.png" alt="Dashboard Điều phối VNDEER" data-i18n-alt="portfolio.proj3Title" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
             <div class="project-card-body" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
-              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;">Dashboard Điều phối</h4>
-              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;">Hệ thống bảng điều khiển trực quan cho nhà điều phối cứu trợ thiên tai và sơ tán khẩn cấp.</p>
+              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;" data-i18n="portfolio.proj3Title">Dashboard Điều phối</h4>
+              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;" data-i18n="portfolio.proj3Desc">Hệ thống bảng điều khiển trực quan cho nhà điều phối cứu trợ thiên tai và sơ tán khẩn cấp.</p>
               <div class="project-tags" style="display: flex; flex-wrap: wrap; gap: 8px;"><span>UI/UX Design</span><span>Dashboard</span><span>Emergency UX</span></div>
             </div>
           </div>
           <!-- Volunteer Project -->
           <div class="project-card reveal spotlight-card" style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; margin-bottom: 0;">
             <div class="spotlight-glow"></div>
-            <img src="asset/project-mobile.png" alt="Dự án Tình nguyện Cộng đồng" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
+            <img src="asset/project-mobile.png" alt="Dự án Tình nguyện Cộng đồng" data-i18n-alt="portfolio.proj4Title" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
             <div class="project-card-body" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
-              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;">Dự án Tình nguyện</h4>
-              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;">Dẫn dắt đội ngũ thực hiện chiến dịch tình nguyện và gây quỹ hỗ trợ cộng đồng bị ảnh hưởng bởi thiên tai.</p>
+              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;" data-i18n="portfolio.proj4Title">Dự án Tình nguyện</h4>
+              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;" data-i18n="portfolio.proj4Desc">Dẫn dắt đội ngũ thực hiện chiến dịch tình nguyện và gây quỹ hỗ trợ cộng đồng bị ảnh hưởng bởi thiên tai.</p>
               <div class="project-tags" style="display: flex; flex-wrap: wrap; gap: 8px;"><span>Coordinator</span><span>Fundraising</span><span>Social Impact</span></div>
             </div>
           </div>
@@ -483,7 +490,7 @@
           <div class="spotlight-glow"></div>
           <div class="stat-icon"><i class="fa-solid fa-code"></i></div>
           <div class="stat-number" data-count="4">0</div>
-          <div class="stat-label">Dự án sáng lập</div>
+          <div class="stat-label" data-i18n="portfolio.stat1">Dự án sáng lập</div>
         </div>
 
         <!-- Stat Card 2 -->
@@ -495,7 +502,7 @@
           <div class="spotlight-glow"></div>
           <div class="stat-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
           <div class="stat-number" data-count="30">0</div>
-          <div class="stat-label">Quỹ gây dựng (Tr.đ)</div>
+          <div class="stat-label" data-i18n="portfolio.stat2">Quỹ gây dựng (Tr.đ)</div>
         </div>
 
         <!-- Stat Card 3 -->
@@ -507,7 +514,7 @@
           <div class="spotlight-glow"></div>
           <div class="stat-icon"><i class="fa-solid fa-graduation-cap"></i></div>
           <div class="stat-number" data-count="51">0</div>
-          <div class="stat-label">Khóa K51 UEH</div>
+          <div class="stat-label" data-i18n="portfolio.stat3">Khóa K51 UEH</div>
         </div>
 
       </div>
@@ -518,45 +525,50 @@
   <section class="certificates has-bg glass-section" id="certificates">
     <div class="portfolio-container">
       <div class="section-header reveal">
-        <div class="section-label">Thành tích</div>
-        <h2 class="section-title split-text"><span class="accent">CHỨNG CHỈ</span> CÁ NHÂN</h2>
+        <div class="section-label" data-i18n="cert.label">Thành tích</div>
+        <h2 class="section-title split-text" data-i18n-split="cert.title"><span class="accent">CHỨNG CHỈ</span> CÁ NHÂN</h2>
       </div>
       
       <!-- TOP CERTIFICATES CAROUSEL -->
-      <h3 class="cert-section-title" style="margin-top: 2rem;"><i class="fa-solid fa-star" style="color: var(--color-accent);"></i> Chứng Chỉ Tiêu Biểu (Featured)</h3>
+      <h3 class="cert-section-title" style="margin-top: 2rem;" data-i18n-html="cert.featuredTitle"><i class="fa-solid fa-star" style="color: var(--color-accent);"></i> Chứng Chỉ Tiêu Biểu (Featured)</h3>
       <div class="cert-carousel-container">
         <button class="cert-carousel-btn prev-btn" aria-label="Previous featured certificate"><i class="fa-solid fa-chevron-left"></i></button>
         
         <div class="cert-carousel-track cert-grid-top">
           <div class="cert-card reveal spotlight-card featured-card">
             <div class="spotlight-glow"></div>
+            <img src="cert/top/uni.jpg" alt="Chứng chỉ tiêu biểu UEH" class="cert-img">
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+          </div>
+          <div class="cert-card reveal spotlight-card featured-card">
+            <div class="spotlight-glow"></div>
             <img src="cert/top/z7838057981935_e8581120a00278ad69e6d885242a1b4b.jpg" alt="Chứng chỉ tiêu biểu 1" class="cert-img">
-            <div class="featured-badge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
           <div class="cert-card reveal spotlight-card featured-card">
             <div class="spotlight-glow"></div>
             <img src="cert/top/z7838058017550_9bbc3d8737998eb17e48949b2e6c7f5d.jpg" alt="Chứng chỉ tiêu biểu 2" class="cert-img">
-            <div class="featured-badge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
           <div class="cert-card reveal spotlight-card featured-card">
             <div class="spotlight-glow"></div>
             <img src="cert/top/z7838058020545_ecc3973ae5b41f0247aa41ac383dd905.jpg" alt="Chứng chỉ tiêu biểu 3" class="cert-img">
-            <div class="featured-badge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
           <div class="cert-card reveal spotlight-card featured-card">
             <div class="spotlight-glow"></div>
             <img src="cert/top/z7838058027497_0fe2676590c54ebb0d36c31bb5c6a59f.jpg" alt="Chứng chỉ tiêu biểu 4" class="cert-img">
-            <div class="featured-badge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
           <div class="cert-card reveal spotlight-card featured-card">
             <div class="spotlight-glow"></div>
             <img src="cert/top/z7838058036435_97c6e4e6d45415cef338c9c5d160ac45.jpg" alt="Chứng chỉ tiêu biểu 5" class="cert-img">
-            <div class="featured-badge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
           <div class="cert-card reveal spotlight-card featured-card">
             <div class="spotlight-glow"></div>
             <img src="cert/top/z7838058038189_bda23d4cdfb907f35436a07dd162906d.jpg" alt="Chứng chỉ tiêu biểu 6" class="cert-img">
-            <div class="featured-badge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
         </div>
         
@@ -564,7 +576,7 @@
       </div>
 
       <!-- OTHER CERTIFICATES CAROUSEL -->
-      <h3 class="cert-section-title" style="margin-top: 4rem;"><i class="fa-solid fa-award"></i> Chứng Chỉ Khác</h3>
+      <h3 class="cert-section-title" style="margin-top: 4rem;" data-i18n-html="cert.otherTitle"><i class="fa-solid fa-award"></i> Chứng Chỉ Khác</h3>
       <div class="cert-carousel-container">
         <button class="cert-carousel-btn prev-btn" aria-label="Previous certificate"><i class="fa-solid fa-chevron-left"></i></button>
         
@@ -652,8 +664,8 @@
   <section class="gallery-masonry-section has-bg glass-section" id="gallery-masonry" style="display: none;">
     <div class="gallery-container">
       <div class="section-header reveal">
-        <div class="section-label">Ảnh nghệ thuật</div>
-        <h2 class="section-title split-text"><span class="accent">MASONRY</span> GALLERY</h2>
+        <div class="section-label" data-i18n="gallery.label">Ảnh nghệ thuật</div>
+        <h2 class="section-title split-text" data-i18n-split="gallery.title"><span class="accent">MASONRY</span> GALLERY</h2>
       </div>
 
       <div class="masonry-wrap" style="position: relative; overflow: hidden; padding: 2rem 0;">
@@ -703,15 +715,15 @@
   <section class="contact has-bg glass-section" id="contact">
     <div class="contact-container">
       <div class="section-header reveal">
-        <div class="section-label">Kết nối</div>
-        <h2 class="section-title split-text"><span class="accent">LIÊN HỆ</span> VỚI TÔI</h2>
+        <div class="section-label" data-i18n="contact.label">Kết nối</div>
+        <h2 class="section-title split-text" data-i18n-split="contact.title"><span class="accent">LIÊN HỆ</span> VỚI TÔI</h2>
       </div>
       <div class="contact-grid reveal">
         <div class="contact-item spotlight-card">
           <div class="spotlight-glow"></div>
           <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
           <div class="contact-info">
-            <h4>Email</h4>
+            <h4 data-i18n="contact.emailLabel">Email</h4>
             <p>phuc.ntt@student.ueh.edu.vn</p>
           </div>
         </div>
@@ -719,7 +731,7 @@
           <div class="spotlight-glow"></div>
           <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
           <div class="contact-info">
-            <h4>Điện thoại</h4>
+            <h4 data-i18n="contact.phoneLabel">Điện thoại</h4>
             <p>+84 9xx xxx xxx</p>
           </div>
         </div>
@@ -727,42 +739,42 @@
           <div class="spotlight-glow"></div>
           <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
           <div class="contact-info">
-            <h4>Địa chỉ</h4>
-            <p>Đại học Kinh tế TP.HCM (UEH), TP. Hồ Chí Minh</p>
+            <h4 data-i18n="contact.addressLabel">Địa chỉ</h4>
+            <p data-i18n="contact.addressValue">Đại học Kinh tế TP.HCM (UEH), TP. Hồ Chí Minh</p>
           </div>
         </div>
         <div class="contact-item spotlight-card">
           <div class="spotlight-glow"></div>
           <div class="contact-icon"><i class="fa-brands fa-github"></i></div>
           <div class="contact-info">
-            <h4>GitHub</h4>
+            <h4 data-i18n="contact.githubLabel">GitHub</h4>
             <p>github.com/tienphuc2007</p>
           </div>
         </div>
       </div>
       <form class="contact-form reveal spotlight-card"
-        onsubmit="event.preventDefault(); alert('Cảm ơn bạn đã gửi tin nhắn!')">
+        onsubmit="handleContactSubmit(event)">
         <div class="spotlight-glow"></div>
         <div style="position: relative; z-index: 1;">
           <div class="form-row">
             <div class="form-group">
-              <label for="name">Họ và tên</label>
-              <input type="text" id="name" placeholder="Nhập họ tên..." required>
+              <label for="name" data-i18n="contact.formName">Họ và tên</label>
+              <input type="text" id="name" data-i18n-placeholder="contact.formNamePlaceholder" placeholder="Nhập họ tên..." required>
             </div>
             <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" id="email" placeholder="Nhập email..." required>
+              <label for="email" data-i18n="contact.formEmail">Email</label>
+              <input type="email" id="email" data-i18n-placeholder="contact.formEmailPlaceholder" placeholder="Nhập email..." required>
             </div>
           </div>
           <div class="form-group">
-            <label for="subject">Chủ đề</label>
-            <input type="text" id="subject" placeholder="Nhập chủ đề...">
+            <label for="subject" data-i18n="contact.formSubject">Chủ đề</label>
+            <input type="text" id="subject" data-i18n-placeholder="contact.formSubjectPlaceholder" placeholder="Nhập chủ đề...">
           </div>
           <div class="form-group">
-            <label for="message">Tin nhắn</label>
-            <textarea id="message" placeholder="Nhập tin nhắn..." required></textarea>
+            <label for="message" data-i18n="contact.formMessage">Tin nhắn</label>
+            <textarea id="message" data-i18n-placeholder="contact.formMessagePlaceholder" placeholder="Nhập tin nhắn..." required></textarea>
           </div>
-          <button type="submit" class="btn btn-filled" style="width:100%;justify-content:center">
+          <button type="submit" class="btn btn-filled" style="width:100%;justify-content:center" data-i18n-html="contact.formSubmit">
             <i class="fa-solid fa-paper-plane"></i> Gửi Tin Nhắn
           </button>
         </div>
@@ -770,6 +782,12 @@
     </div>
     </div>
   </section>
+
+  <!-- Floating Language Toggle (Visible before scrolling) -->
+  <button class="lang-floating-btn" id="langFloatingBtn" onclick="toggleLanguage()" aria-label="Toggle Language" title="Chuyển đổi ngôn ngữ / Switch Language">
+    <i class="fa-solid fa-globe"></i>
+    <span class="lang-floating-code" id="langFloatingCode">VI</span>
+  </button>
 
   <!-- Floating Music Toggle -->
   <div class="music-floating-btn" id="musicFloatingBtn" onclick="toggleMusic()">
@@ -781,7 +799,7 @@
 
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
-    <p>&copy; 2026 <span class="primary">NGUYỄN TRẦN TIẾN PHÚC</span>. Thiết kế với <i class="fa-solid fa-heart"
+    <p data-i18n-html="footer.copyright">&copy; 2026 <span class="primary">NGUYỄN TRẦN TIẾN PHÚC</span>. Thiết kế với <i class="fa-solid fa-heart"
         style="color:#FF6B6B"></i> và niềm đam mê công nghệ.</p>
   </footer>
 

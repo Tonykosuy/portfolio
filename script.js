@@ -32,6 +32,264 @@ const initMusic = () => {
 };
 initMusic();
 
+// ===== BILINGUAL (VI / EN) TRANSLATION ENGINE =====
+const i18nTranslations = {
+  vi: {
+    "meta.title": "NGUYỄN TRẦN TIẾN PHÚC | Portfolio",
+    "meta.description": "Portfolio cá nhân - Nguyễn Trần Tiến Phúc | Sinh viên chuyên ngành Thị trường Chứng khoán UEH & Nhà phát triển FinTech/AI",
+    "nav.logoTitle": "TIẾN PHÚC",
+    "nav.logoSub": "— Tài chính & Công nghệ —",
+    "nav.home": "Trang chủ",
+    "nav.about": "Giới thiệu",
+    "nav.portfolio": "Dự án",
+    "nav.contact": "Liên hệ",
+    "marquee.about": "VỀ BẢN THÂN",
+    "about.label": "✦ Đam mê Tài chính & Lập trình Công nghệ ✦",
+    "about.title": "XIN CHÀO, TÔI LÀ",
+    "about.name": "NGUYỄN TRẦN TIẾN PHÚC",
+    "about.bio": "Tôi là sinh viên ngành <strong>Thị trường Chứng khoán</strong> tại UEH (Khóa K51) nhưng sở hữu niềm đam mê lớn với Công nghệ và Đổi mới sáng tạo. Tôi luôn hướng tới việc kết hợp kiến thức Tài chính với năng lực Lập trình để tạo ra các giải pháp FinTech tối ưu, đồng thời có tư duy mạnh mẽ về các dự án công nghệ tạo tác động xã hội.",
+    "about.quote": "\"Kết hợp Tài chính và Công nghệ để kiến tạo những giá trị xã hội bền vững.\"",
+    "about.downloadCv": "<i class=\"fa-solid fa-download\"></i> Tải CV",
+    "about.portraitAlt": "Chân dung",
+    "about.creativity": "Sáng tạo",
+    "about.skillsTitle": "Kỹ Năng Nổi Bật",
+    "about.skill1": "Phân tích Chứng khoán",
+    "about.skill2": "Lập trình FinTech/AI",
+    "about.skill3": "Xử lý dữ liệu",
+    "about.skill4": "Thiết kế UI/UX",
+    "journey.ticket1Desc": "Phân tích thị trường chứng khoán",
+    "journey.ticket2Desc": "Tự động hóa & xử lý dữ liệu",
+    "journey.ticket3Desc": "Giao diện Dashboard khẩn cấp",
+    "journey.ticket4Desc": "Trưởng nhóm & điều phối dự án",
+    "journey.notebookTitle": "NHẬT KÝ CỦA TÔI",
+    "journey.notebookHint": "~ Nhấn để mở ~",
+    "journey.expTitle": "Kinh Nghiệm",
+    "journey.exp1": "Sáng lập & Phát triển dự án VNDEER",
+    "journey.exp2": "Phát triển AI Chatbot Chứng khoán",
+    "journey.exp3": "Trưởng nhóm Bond & Benefit (B&B)",
+    "journey.skillsTitle": "Kỹ Năng",
+    "journey.doodle1": "Tài chính",
+    "journey.doodle2": "AI Code",
+    "journey.doodle3": "Lãnh đạo",
+    "portfolio.label": "Kho lưu trữ",
+    "portfolio.title": "<span class=\"accent\">DỰ ÁN</span> NỔI BẬT",
+    "portfolio.proj1Title": "Dự án VNDEER",
+    "portfolio.proj1Desc": "Nền tảng công nghệ hỗ trợ điều phối cứu trợ và sơ tán khẩn cấp khi gặp thiên tai tại Việt Nam.",
+    "portfolio.proj2Title": "AI Chatbot Chứng khoán",
+    "portfolio.proj2Desc": "Công cụ tự động hóa hỗ trợ nhà đầu tư trích xuất thông tin, phân tích dữ liệu thị trường chứng khoán theo thời gian thực.",
+    "portfolio.proj3Title": "Dashboard Điều phối",
+    "portfolio.proj3Desc": "Hệ thống bảng điều khiển trực quan cho nhà điều phối cứu trợ thiên tai và sơ tán khẩn cấp.",
+    "portfolio.proj4Title": "Dự án Tình nguyện",
+    "portfolio.proj4Desc": "Dẫn dắt đội ngũ thực hiện chiến dịch tình nguyện và gây quỹ hỗ trợ cộng đồng bị ảnh hưởng bởi thiên tai.",
+    "portfolio.stat1": "Dự án sáng lập",
+    "portfolio.stat2": "Quỹ gây dựng (Tr.đ)",
+    "portfolio.stat3": "Khóa K51 UEH",
+    "cert.label": "Thành tích",
+    "cert.title": "<span class=\"accent\">CHỨNG CHỈ</span> CÁ NHÂN",
+    "cert.featuredTitle": "<i class=\"fa-solid fa-star\" style=\"color: var(--color-accent);\"></i> Chứng Chỉ Tiêu Biểu (Featured)",
+    "cert.featuredBadge": "<i class=\"fa-solid fa-star\"></i> TIÊU BIỂU",
+    "cert.otherTitle": "<i class=\"fa-solid fa-award\"></i> Chứng Chỉ Khác",
+    "gallery.label": "Ảnh nghệ thuật",
+    "gallery.title": "<span class=\"accent\">MASONRY</span> GALLERY",
+    "contact.label": "Kết nối",
+    "contact.title": "<span class=\"accent\">LIÊN HỆ</span> VỚI TÔI",
+    "contact.emailLabel": "Email",
+    "contact.phoneLabel": "Điện thoại",
+    "contact.addressLabel": "Địa chỉ",
+    "contact.addressValue": "Đại học Kinh tế TP.HCM (UEH), TP. Hồ Chí Minh",
+    "contact.githubLabel": "GitHub",
+    "contact.formName": "Họ và tên",
+    "contact.formNamePlaceholder": "Nhập họ tên...",
+    "contact.formEmail": "Email",
+    "contact.formEmailPlaceholder": "Nhập email...",
+    "contact.formSubject": "Chủ đề",
+    "contact.formSubjectPlaceholder": "Nhập chủ đề...",
+    "contact.formMessage": "Tin nhắn",
+    "contact.formMessagePlaceholder": "Nhập tin nhắn...",
+    "contact.formSubmit": "<i class=\"fa-solid fa-paper-plane\"></i> Gửi Tin Nhắn",
+    "contact.alertSuccess": "Cảm ơn bạn đã gửi tin nhắn!",
+    "footer.copyright": "&copy; 2026 <span class=\"primary\">NGUYỄN TRẦN TIẾN PHÚC</span>. Thiết kế với <i class=\"fa-solid fa-heart\" style=\"color:#FF6B6B\"></i> và niềm đam mê công nghệ."
+  },
+  en: {
+    "meta.title": "NGUYEN TRAN TIEN PHUC | Portfolio",
+    "meta.description": "Personal Portfolio - Nguyen Tran Tien Phuc | Stock Market Student at UEH & FinTech/AI Developer",
+    "nav.logoTitle": "TIEN PHUC",
+    "nav.logoSub": "— Finance & Technology —",
+    "nav.home": "Home",
+    "nav.about": "About",
+    "nav.portfolio": "Projects",
+    "nav.contact": "Contact",
+    "marquee.about": "ABOUT ME",
+    "about.label": "✦ Passion for Finance & Tech Programming ✦",
+    "about.title": "HELLO, I AM",
+    "about.name": "NGUYEN TRAN TIEN PHUC",
+    "about.bio": "I am a <strong>Stock Market</strong> student at UEH (Batch K51) with a strong passion for Technology and Innovation. I always strive to combine Financial knowledge with Programming capabilities to build optimal FinTech solutions, driven by a strong mindset for social-impact technology projects.",
+    "about.quote": "\"Combining Finance and Technology to create sustainable social values.\"",
+    "about.downloadCv": "<i class=\"fa-solid fa-download\"></i> Download CV",
+    "about.portraitAlt": "Portrait",
+    "about.creativity": "Creativity",
+    "about.skillsTitle": "Core Skills",
+    "about.skill1": "Stock Analysis",
+    "about.skill2": "FinTech/AI Dev",
+    "about.skill3": "Data Processing",
+    "about.skill4": "UI/UX Design",
+    "journey.ticket1Desc": "Stock market analysis",
+    "journey.ticket2Desc": "Automation & data processing",
+    "journey.ticket3Desc": "Emergency Dashboard UI/UX",
+    "journey.ticket4Desc": "Team Lead & project coordination",
+    "journey.notebookTitle": "MY JOURNAL",
+    "journey.notebookHint": "~ Click to open ~",
+    "journey.expTitle": "Experience",
+    "journey.exp1": "Founded & Developed VNDEER Project",
+    "journey.exp2": "Developed Stock Market AI Chatbot",
+    "journey.exp3": "Team Leader of Bond & Benefit (B&B)",
+    "journey.skillsTitle": "Skills",
+    "journey.doodle1": "Finance",
+    "journey.doodle2": "AI Code",
+    "journey.doodle3": "Leadership",
+    "portfolio.label": "Archive",
+    "portfolio.title": "<span class=\"accent\">FEATURED</span> PROJECTS",
+    "portfolio.proj1Title": "VNDEER Project",
+    "portfolio.proj1Desc": "A technology platform supporting emergency relief coordination and evacuation during natural disasters in Vietnam.",
+    "portfolio.proj2Title": "Stock Market AI Chatbot",
+    "portfolio.proj2Desc": "An automation tool assisting investors in extracting insights and analyzing real-time stock market data.",
+    "portfolio.proj3Title": "Coordination Dashboard",
+    "portfolio.proj3Desc": "An intuitive control panel system for disaster relief coordinators and emergency evacuation.",
+    "portfolio.proj4Title": "Community Volunteer Project",
+    "portfolio.proj4Desc": "Led teams in executing volunteer campaigns and fundraising to support communities affected by natural disasters.",
+    "portfolio.stat1": "Founded Projects",
+    "portfolio.stat2": "Funds Raised (M VND)",
+    "portfolio.stat3": "UEH Batch K51",
+    "cert.label": "Achievements",
+    "cert.title": "<span class=\"accent\">PERSONAL</span> CERTIFICATES",
+    "cert.featuredTitle": "<i class=\"fa-solid fa-star\" style=\"color: var(--color-accent);\"></i> Featured Certificates",
+    "cert.featuredBadge": "<i class=\"fa-solid fa-star\"></i> FEATURED",
+    "cert.otherTitle": "<i class=\"fa-solid fa-award\"></i> Other Certificates",
+    "gallery.label": "Art Gallery",
+    "gallery.title": "<span class=\"accent\">MASONRY</span> GALLERY",
+    "contact.label": "Get in Touch",
+    "contact.title": "<span class=\"accent\">CONTACT</span> ME",
+    "contact.emailLabel": "Email",
+    "contact.phoneLabel": "Phone",
+    "contact.addressLabel": "Location",
+    "contact.addressValue": "University of Economics Ho Chi Minh City (UEH), HCMC",
+    "contact.githubLabel": "GitHub",
+    "contact.formName": "Full Name",
+    "contact.formNamePlaceholder": "Enter your full name...",
+    "contact.formEmail": "Email",
+    "contact.formEmailPlaceholder": "Enter your email...",
+    "contact.formSubject": "Subject",
+    "contact.formSubjectPlaceholder": "Enter subject...",
+    "contact.formMessage": "Message",
+    "contact.formMessagePlaceholder": "Write your message...",
+    "contact.formSubmit": "<i class=\"fa-solid fa-paper-plane\"></i> Send Message",
+    "contact.alertSuccess": "Thank you for your message!",
+    "footer.copyright": "&copy; 2026 <span class=\"primary\">NGUYEN TRAN TIEN PHUC</span>. Designed with <i class=\"fa-solid fa-heart\" style=\"color:#FF6B6B\"></i> and a passion for technology."
+  }
+};
+
+let currentLang = localStorage.getItem('portfolio_lang') || 'vi';
+
+// Helper to build split-text spans while preserving .accent styling
+const buildSplitText = (el, htmlString) => {
+  const temp = document.createElement('div');
+  temp.innerHTML = htmlString;
+  el.innerHTML = '';
+  let charIndex = 0;
+
+  const processNode = (node, isAccent = false) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      node.textContent.split('').forEach((char) => {
+        const span = document.createElement('span');
+        span.innerText = char === ' ' ? '\u00A0' : char;
+        if (isAccent) span.classList.add('accent');
+        span.style.transitionDelay = `${charIndex * 30}ms`;
+        el.appendChild(span);
+        charIndex++;
+      });
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const accent = isAccent || node.classList.contains('accent');
+      node.childNodes.forEach(child => processNode(child, accent));
+    }
+  };
+
+  temp.childNodes.forEach(node => processNode(node, false));
+};
+
+function applyLanguage(lang) {
+  const dict = i18nTranslations[lang] || i18nTranslations.vi;
+  currentLang = lang;
+  localStorage.setItem('portfolio_lang', lang);
+
+  // Update HTML lang, title, and meta description
+  document.documentElement.lang = lang;
+  if (dict["meta.title"]) document.title = dict["meta.title"];
+  const metaDesc = document.getElementById('meta-description');
+  if (metaDesc && dict["meta.description"]) {
+    metaDesc.setAttribute('content', dict["meta.description"]);
+  }
+
+  // Plain text elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) {
+      el.textContent = dict[key];
+    }
+  });
+
+  // HTML elements
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    if (dict[key] !== undefined) {
+      el.innerHTML = dict[key];
+    }
+  });
+
+  // Placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (dict[key] !== undefined) {
+      el.setAttribute('placeholder', dict[key]);
+    }
+  });
+
+  // Image alt attributes
+  document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+    const key = el.getAttribute('data-i18n-alt');
+    if (dict[key] !== undefined) {
+      el.setAttribute('alt', dict[key]);
+    }
+  });
+
+  // Split-text headings
+  document.querySelectorAll('[data-i18n-split]').forEach(el => {
+    const key = el.getAttribute('data-i18n-split');
+    if (dict[key] !== undefined) {
+      buildSplitText(el, dict[key]);
+    }
+  });
+
+  // Update toggle button states
+  document.querySelectorAll('.lang-opt').forEach(opt => {
+    opt.classList.toggle('active', opt.getAttribute('data-lang-opt') === lang);
+  });
+  const floatingCode = document.getElementById('langFloatingCode');
+  if (floatingCode) {
+    floatingCode.textContent = lang.toUpperCase();
+  }
+}
+
+function toggleLanguage() {
+  const nextLang = currentLang === 'vi' ? 'en' : 'vi';
+  applyLanguage(nextLang);
+}
+
+function handleContactSubmit(event) {
+  event.preventDefault();
+  const dict = i18nTranslations[currentLang] || i18nTranslations.vi;
+  alert(dict["contact.alertSuccess"]);
+}
+
 // ===== STARLIGHT PARTICLES SYSTEM =====
 // Warm floating stars inspired by Van Gogh's Starry Night
 const canvas = document.getElementById('particles-canvas');
@@ -83,10 +341,10 @@ class Star {
     this.y += this.speedY;
     this.life += this.twinkleSpeed;
 
-    // Twinkle effect â€” organic breathing
+    // Twinkle effect — organic breathing
     this.opacity = this.maxOpacity * (0.5 + 0.5 * Math.sin(this.life + this.twinklePhase));
 
-    // Gentle mouse interaction â€” stars drift away softly
+    // Gentle mouse interaction — stars drift away softly
     if (mouse.x !== null) {
       const dx = mouse.x - this.x;
       const dy = mouse.y - this.y;
@@ -133,7 +391,7 @@ function initStars() {
 }
 initStars();
 
-// Soft connections between nearby stars â€” like constellation lines
+// Soft connections between nearby stars — like constellation lines
 function connectStars() {
   for (let a = 0; a < stars.length; a++) {
     for (let b = a + 1; b < stars.length; b++) {
@@ -272,18 +530,13 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 
-// Initialize// ===== SPLIT TEXT ENGINE =====
+// ===== SPLIT TEXT ENGINE =====
 const initSplitText = () => {
   const elements = document.querySelectorAll('.split-text');
   elements.forEach(el => {
-    const text = el.innerText;
-    el.innerHTML = '';
-    text.split('').forEach((char, i) => {
-      const span = document.createElement('span');
-      span.innerText = char === ' ' ? '\u00A0' : char;
-      span.style.transitionDelay = `${i * 30}ms`;
-      el.appendChild(span);
-    });
+    if (!el.hasAttribute('data-i18n-split')) {
+      buildSplitText(el, el.innerHTML);
+    }
   });
 
   const observer = new IntersectionObserver((entries) => {
@@ -321,10 +574,6 @@ const initMouseEffects = () => {
   });
 };
 
-// ===== PHOTOBOOTH VINTAGE =====
-// Redundant initPhotobooth removed to consolidate logic in initAntiGravity
-
-// ===== CIRCULAR GALLERY LOGIC =====
 // ===== PERSPECTIVE GALLERY INTERACTION =====
 const initPerspectiveGallery = () => {
   const items = document.querySelectorAll('.gallery-item-perspective');
@@ -376,6 +625,7 @@ const initAll = () => {
     }
   };
 
+  safeInit('applyLanguage', () => applyLanguage(currentLang));
   safeInit('initSplitText', initSplitText);
   safeInit('initMouseEffects', initMouseEffects);
   safeInit('initPerspectiveGallery', initPerspectiveGallery);
@@ -505,8 +755,6 @@ const initAntiGravity = () => {
   const notebook = document.querySelector('.vintage-notebook');
   const floatingEls = document.querySelectorAll('.floating-el');
   const parallaxWraps = document.querySelectorAll('.parallax-wrap');
-  const notebookWrapper = document.querySelector('.notebook-wrapper');
-  const notebookCloseBtn = document.querySelector('.notebook-close-btn');
 
   if (!section) return;
 
@@ -601,8 +849,6 @@ const initAntiGravity = () => {
   // 3b. Countdown Camera Interaction
   const countdownOverlay = document.getElementById('countdown-overlay');
   const flash = document.getElementById('camera-flash');
-  const capturedLetterModal = document.getElementById('captured-letter-popup');
-  const letterCloseBtn = document.getElementById('letter-close-btn');
 
   const cameraTrigger = document.getElementById('camera-trigger');
   const photoPopup = document.getElementById('photo-popup');
@@ -759,4 +1005,3 @@ const initCertCarousels = () => {
 
   });
 };
-
