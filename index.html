@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" id="meta-description" content="Portfolio cá nhân - Nguyễn Trần Tiến Phúc | Sinh viên chuyên ngành Thị trường Chứng khoán UEH & Nhà phát triển FinTech/AI">
+  <meta name="description" id="meta-description" content="Portfolio cá nhân - Nguyễn Trần Tiến Phúc | Sinh viên chuyên ngành Thị trường Chứng khoán & Kinh doanh Quốc tế UEH">
   <title>NGUYỄN TRẦN TIẾN PHÚC | Portfolio</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -20,12 +20,12 @@
     rel="stylesheet">
   
   <style>
-    /* Immediate hide body scroll */
+    /* Immediate hide body scroll only during initial loader */
     body.loading { overflow: hidden; }
   </style>
 
   <script>
-    // ===== IMMEDIATE LOADER LOGIC =====
+    // ===== IMMEDIATE LOADER LOGIC (Never blocks scroll on heavy media) =====
     (function() {
       const init = () => {
         const loaderWrapper = document.getElementById('loader-wrapper');
@@ -46,49 +46,58 @@
 
         let currentGreetingIndex = 0;
         let progress = 0;
-        const startTime = Date.now();
-        const minDuration = 2500;
-        let isPageLoaded = false;
+        let isCompleted = false;
+
+        const completeLoading = () => {
+          if (isCompleted) return;
+          isCompleted = true;
+          if (progressBar) progressBar.style.width = '100%';
+          if (percentageText) percentageText.textContent = '100';
+          const savedLang = localStorage.getItem('portfolio_lang') || 'vi';
+          if (loaderText) loaderText.textContent = savedLang === 'en' ? "Welcome" : "Xin chào";
+
+          // Trigger background music as soon as loader finishes
+          const audioEl = document.getElementById('bg-music');
+          if (audioEl && audioEl.paused) {
+            audioEl.play().then(() => {
+              const mt = document.getElementById('musicToggle');
+              const mf = document.getElementById('musicFloatingBtn');
+              if (mt) mt.classList.add('playing');
+              if (mf) mf.classList.add('playing');
+            }).catch(() => {});
+          }
+
+          setTimeout(() => {
+            loaderWrapper.classList.add('loaded');
+            document.body.classList.remove('loading');
+            document.body.style.overflow = '';
+            setTimeout(() => { loaderWrapper.remove(); }, 1000);
+          }, 350);
+        };
 
         const textInterval = setInterval(() => {
           if (currentGreetingIndex < greetings.length - 1) {
             currentGreetingIndex++;
             if (loaderText) loaderText.textContent = greetings[currentGreetingIndex];
-          } else if (isPageLoaded && (Date.now() - startTime >= minDuration)) {
+          } else {
             clearInterval(textInterval);
             completeLoading();
           }
-        }, 180);
+        }, 150);
 
         const progressInterval = setInterval(() => {
-          if (progress < 90) {
-            progress += Math.random() * 2.5; 
-          } else if (isPageLoaded && progress < 100) {
-            progress += 0.8;
+          progress += 2.2;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(progressInterval);
+            completeLoading();
           }
-          if (progress > 100) progress = 100;
           if (progressBar) progressBar.style.width = progress + '%';
           if (percentageText) percentageText.textContent = Math.floor(progress);
+        }, 45);
 
-          if (progress >= 100 && isPageLoaded && (Date.now() - startTime >= minDuration)) {
-            clearInterval(progressInterval);
-          }
-        }, 40);
-
-        const completeLoading = () => {
-          if (progressBar) progressBar.style.width = '100.0%';
-          if (percentageText) percentageText.textContent = '100';
-          const savedLang = localStorage.getItem('portfolio_lang') || 'vi';
-          if (loaderText) loaderText.textContent = savedLang === 'en' ? "Welcome" : "Xin chào";
-          setTimeout(() => {
-            loaderWrapper.classList.add('loaded');
-            document.body.classList.remove('loading');
-            setTimeout(() => { loaderWrapper.remove(); }, 1200);
-          }, 500);
-        };
-
-        window.addEventListener('load', () => { isPageLoaded = true; });
-        if (document.readyState === 'complete') { isPageLoaded = true; }
+        // Safety fallback: always unlock scroll after 3 seconds max
+        setTimeout(completeLoading, 3000);
       };
       
       if (document.readyState === 'loading') {
@@ -100,7 +109,7 @@
   </script>
 </head>
 
-<body class="loading">
+<body class="loading" oncontextmenu="return false;" ondragstart="return false;">
   <!-- ===== PREMIUM LOADER ===== -->
   <div id="loader-wrapper">
     <div class="loader-content">
@@ -112,15 +121,15 @@
     </div>
   </div>
 
-  <!-- BG MUSIC -->
-  <audio id="bg-music" src="asset/bg-music.mp3" loop></audio>
+  <!-- BG MUSIC (Autoplay enabled) -->
+  <audio id="bg-music" src="asset/bg-music.mp3" autoplay loop preload="auto" controlsList="nodownload" oncontextmenu="return false;"></audio>
 
   <!-- Shape Blur Background -->
   <div class="shape-blur" id="mouse-blur"></div>
 
   <!-- Global Video Background -->
   <div class="fixed-bg">
-    <video autoplay muted playsinline id="globalVideo">
+    <video autoplay muted playsinline id="globalVideo" controlsList="nodownload noplaybackrate" disablePictureInPicture oncontextmenu="return false;">
       <source src="asset/pixverse-bg.mp4" type="video/mp4">
     </video>
     <div class="bg-overlay"></div>
@@ -141,6 +150,7 @@
     <ul class="nav-links" id="navLinks">
       <li><a href="#home" class="active" data-i18n="nav.home">Trang chủ</a></li>
       <li><a href="#about" data-i18n="nav.about">Giới thiệu</a></li>
+      <li><a href="#certificates" data-i18n="nav.certificates">Chứng chỉ</a></li>
       <li><a href="#portfolio" data-i18n="nav.portfolio">Dự án</a></li>
       <li><a href="#contact" data-i18n="nav.contact">Liên hệ</a></li>
     </ul>
@@ -213,19 +223,39 @@
     <div class="about-container">
       <div class="bento-grid">
 
-        <!-- Bento item: Main Info -->
+        <!-- Bento item: Main Info + Embedded Zoomable CV -->
         <div class="bento-item bento-large spotlight-card">
           <div class="spotlight-glow"></div>
-          <div class="about-info" style="padding: 2.5rem; height: 100%;">
-            <h3 class="neon-gold" style="font-size: 2.0rem; margin-bottom: 1rem;" data-i18n="about.name">NGUYỄN TRẦN TIẾN PHÚC</h3>
-            <p style="font-size: 1.05rem; line-height: 1.8;" data-i18n-html="about.bio">
-              Tôi là sinh viên ngành <strong>Thị trường Chứng khoán</strong> tại UEH (Khóa K51) nhưng sở hữu niềm đam mê lớn với Công nghệ và Đổi mới sáng tạo. Tôi luôn hướng tới việc kết hợp kiến thức Tài chính với năng lực Lập trình để tạo ra các giải pháp FinTech tối ưu, đồng thời có tư duy mạnh mẽ về các dự án công nghệ tạo tác động xã hội.
-            </p>
-            <div class="quote-box" style="margin-top: 1.5rem;">
-              <p data-i18n="about.quote">"Kết hợp Tài chính và Công nghệ để kiến tạo những giá trị xã hội bền vững."</p>
+          <div class="about-info" style="padding: 2.2rem; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; gap: 0.8rem;">
+            <div>
+              <h3 class="neon-gold" style="font-size: 2.0rem; margin-bottom: 0.8rem;" data-i18n="about.name">NGUYỄN TRẦN TIẾN PHÚC</h3>
+              <p style="font-size: 1.02rem; line-height: 1.75; margin-bottom: 1.1rem;" data-i18n-html="about.bio">
+                Tôi là sinh viên song ngành <strong>Thị trường Chứng khoán & Kinh doanh Quốc tế</strong> tại UEH (Khóa K51), đồng thời tham gia chương trình trao đổi về Kinh doanh bền vững tại <strong>Universitas Airlangga</strong>. Tôi luôn hướng tới việc kết hợp phân tích Tài chính với năng lực Lập trình & AI để tạo ra các giải pháp công nghệ mang lại giá trị thiết thực cho cộng đồng.
+              </p>
+              <div class="quote-box" style="margin-bottom: 0.4rem; padding: 1.1rem 1.5rem;">
+                <p data-i18n="about.quote">"Kết hợp Tài chính và Công nghệ để kiến tạo những giá trị xã hội bền vững."</p>
+              </div>
             </div>
-            <div class="btn-group" style="margin-top: 1.5rem;">
-              <button class="btn btn-filled" data-i18n-html="about.downloadCv"><i class="fa-solid fa-download"></i> Tải CV</button>
+
+            <!-- Embedded Interactive CV Preview inside About Info -->
+            <div class="about-cv-embed">
+              <div class="about-cv-header">
+                <span class="cv-embed-title"><i class="fa-solid fa-file-invoice"></i> <span data-i18n="cv.badge">Hồ sơ năng lực (CV)</span></span>
+                <span class="cv-embed-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> <span data-i18n="cv.zoomHint">Nhấn vào CV để phóng to</span></span>
+              </div>
+              <div class="cv-inline-card zoomable-card" id="cv-showcase-card" role="button" tabindex="0" aria-label="Phóng to CV">
+                <img src="asset/cv/CV_VIE.png" alt="CV Nguyễn Trần Tiến Phúc" id="cv-preview-img" class="zoomable-img">
+                <div class="cv-inline-overlay">
+                  <span class="cv-zoom-badge">
+                    <i class="fa-solid fa-expand"></i>
+                    <span data-i18n="cv.clickToView">Xem chi tiết & Phóng to CV</span>
+                  </span>
+                </div>
+              </div>
+              <div class="cv-lang-indicator" style="margin-top: 0.5rem;">
+                <i class="fa-solid fa-language"></i>
+                <span data-i18n="cv.langNote">Phiên bản Tiếng Việt (Đổi ngôn ngữ EN/VI ở góc trên để xem CV tiếng Anh)</span>
+              </div>
             </div>
           </div>
         </div>
@@ -246,26 +276,26 @@
           </div>
         </div>
 
-        <!-- Bento item: Tech Stack Quick View -->
+        <!-- Bento item: Tech Stack Quick View (Matched to CV) -->
         <div class="bento-item spotlight-card">
           <div class="spotlight-glow"></div>
-          <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-            <h4 class="neon-amber" style="font-family: var(--font-accent);" data-i18n="about.skillsTitle">Kỹ Năng Nổi Bật</h4>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              <span class="project-tags" data-i18n="about.skill1">Phân tích Chứng khoán</span>
-              <span class="project-tags" data-i18n="about.skill2">Lập trình FinTech/AI</span>
-              <span class="project-tags" data-i18n="about.skill3">Xử lý dữ liệu</span>
-              <span class="project-tags" data-i18n="about.skill4">Thiết kế UI/UX</span>
+          <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 0.9rem;">
+            <h4 class="neon-amber" style="font-family: var(--font-accent);" data-i18n="about.skillsTitle">Kỹ Năng & Chứng Nhận</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+              <span class="project-tags" data-i18n="about.skill1">Phân tích Chứng khoán & ESG</span>
+              <span class="project-tags" data-i18n="about.skill2">AI Automation (n8n, Make, Botpress)</span>
+              <span class="project-tags" data-i18n="about.skill3">Google Data Analytics</span>
+              <span class="project-tags" data-i18n="about.skill4">MOS Expert & IELTS 6.0</span>
+              <span class="project-tags" data-i18n="about.skill5">Quản lý Dự án & Lãnh đạo</span>
             </div>
           </div>
         </div>
 
       </div>
     </div>
-    </div>
   </section>
 
-  <!-- ===== ANTI-GRAVITY VAN GOGH SECTION ===== -->
+  <!-- ===== ANTI-GRAVITY SKILLS SECTION (4 Floating Tickets matched to CV, Notebook removed) ===== -->
   <section class="starry-night-section glass-section" id="journey">
     <div class="starry-bg-elements">
       <div class="swirl swirl-1"></div>
@@ -274,140 +304,84 @@
     </div>
     
     <div class="container container-starry" style="position: relative; z-index: 10;">
+      <div class="section-header reveal" style="margin-bottom: 2.5rem;">
+        <div class="section-label" data-i18n="journey.label">✦ Năng lực cốt lõi từ trải nghiệm thực tiễn ✦</div>
+        <h2 class="section-title split-text" data-i18n-split="journey.title"><span class="accent">KỸ NĂNG</span> CHUYÊN MÔN</h2>
+      </div>
 
-
-      <div class="anti-gravity-container" style="margin-top: 5rem;">
-        <!-- Floating Tickets Layer -->
+      <div class="anti-gravity-container" style="margin-top: 2rem;">
+        <!-- Floating Skill Tickets Layer (Matched to CV) -->
         <div class="tickets-grid">
-          <div class="parallax-wrap" data-depth="0.1">
+          <div class="parallax-wrap" data-depth="0.08">
             <div class="ticket-card floating-el ticket-pastel-1">
               <div class="ticket-notch ticket-notch-left"></div>
               <div class="ticket-notch ticket-notch-right"></div>
               <div class="ticket-inner">
                 <div class="ticket-accent-stripe"></div>
-                <span class="ticket-label">✦ ADMIT ONE</span>
+                <span class="ticket-label">✦ CORE SKILL 01</span>
                 <div class="ticket-icon">📈</div>
                 <div class="ticket-body">
-                  <h3>FINANCE & STOCK</h3>
-                  <p data-i18n="journey.ticket1Desc">Phân tích thị trường chứng khoán</p>
+                  <h3 data-i18n="journey.t1Title">FINANCE & AI BOT</h3>
+                  <p data-i18n="journey.t1Desc">Phân tích kỹ thuật & Bot đầu tư n8n (Lợi nhuận 10%/3 tháng)</p>
                 </div>
                 <div class="ticket-divider"></div>
-                <div class="ticket-footer">NO. 001 — FINTECH</div>
+                <div class="ticket-footer">NO. 001 — FINTECH UEH</div>
               </div>
             </div>
           </div>
           
-          <div class="parallax-wrap" data-depth="0.1">
+          <div class="parallax-wrap" data-depth="0.08">
             <div class="ticket-card floating-el ticket-pastel-2">
               <div class="ticket-notch ticket-notch-left"></div>
               <div class="ticket-notch ticket-notch-right"></div>
               <div class="ticket-inner">
                 <div class="ticket-accent-stripe"></div>
-                <span class="ticket-label">✦ ADMIT ONE</span>
+                <span class="ticket-label">✦ CORE SKILL 02</span>
                 <div class="ticket-icon">🤖</div>
                 <div class="ticket-body">
-                  <h3>AI CHATBOT</h3>
-                  <p data-i18n="journey.ticket2Desc">Tự động hóa & xử lý dữ liệu</p>
+                  <h3 data-i18n="journey.t2Title">AI & AUTOMATION</h3>
+                  <p data-i18n="journey.t2Desc">Tự động hóa quy trình với n8n, Make, Kodular, Botpress & Veo 3</p>
                 </div>
                 <div class="ticket-divider"></div>
-                <div class="ticket-footer">NO. 002 — FINTECH</div>
+                <div class="ticket-footer">NO. 002 — AI PIPELINES</div>
               </div>
             </div>
           </div>
 
-          <div class="parallax-wrap" data-depth="0.1">
+          <div class="parallax-wrap" data-depth="0.08">
             <div class="ticket-card floating-el ticket-pastel-3">
               <div class="ticket-notch ticket-notch-left"></div>
               <div class="ticket-notch ticket-notch-right"></div>
               <div class="ticket-inner">
                 <div class="ticket-accent-stripe"></div>
-                <span class="ticket-label">✦ ADMIT ONE</span>
-                <div class="ticket-icon">🎨</div>
+                <span class="ticket-label">✦ CORE SKILL 03</span>
+                <div class="ticket-icon">📊</div>
                 <div class="ticket-body">
-                  <h3>UI/UX DESIGN</h3>
-                  <p data-i18n="journey.ticket3Desc">Giao diện Dashboard khẩn cấp</p>
+                  <h3 data-i18n="journey.t3Title">DATA & WEB DEV</h3>
+                  <p data-i18n="journey.t3Desc">Google Data Analytics, MOS Expert & Xây dựng Web thương mại</p>
                 </div>
                 <div class="ticket-divider"></div>
-                <div class="ticket-footer">NO. 003 — FINTECH</div>
+                <div class="ticket-footer">NO. 003 — DATA ANALYTICS</div>
               </div>
             </div>
           </div>
 
-          <div class="parallax-wrap" data-depth="0.1">
+          <div class="parallax-wrap" data-depth="0.08">
             <div class="ticket-card floating-el ticket-pastel-4">
               <div class="ticket-notch ticket-notch-left"></div>
               <div class="ticket-notch ticket-notch-right"></div>
               <div class="ticket-inner">
                 <div class="ticket-accent-stripe"></div>
-                <span class="ticket-label">✦ ADMIT ONE</span>
-                <div class="ticket-icon">👥</div>
+                <span class="ticket-label">✦ CORE SKILL 04</span>
+                <div class="ticket-icon">🌱</div>
                 <div class="ticket-body">
-                  <h3>LEADERSHIP</h3>
-                  <p data-i18n="journey.ticket4Desc">Trưởng nhóm & điều phối dự án</p>
+                  <h3 data-i18n="journey.t4Title">ESG & LEADERSHIP</h3>
+                  <p data-i18n="journey.t4Desc">Founder VNDEER, Leader B&B (HuReA) & Green Youth Lab (Unicef)</p>
                 </div>
                 <div class="ticket-divider"></div>
-                <div class="ticket-footer">NO. 004 — FINTECH</div>
+                <div class="ticket-footer">NO. 004 — SOCIAL IMPACT</div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Floating Notebook Layer -->
-        <div class="parallax-wrap" data-depth="0.12" style="display:flex; justify-content:center;">
-          <div class="notebook-wrapper floating-el">
-            <div class="vintage-notebook" id="journey-notebook">
-              <div class="notebook-cover">
-                <div class="cover-front">
-                  <img src="asset/notebook-cover-new.png" alt="Vintage Notebook" class="cover-image">
-                  <div class="cover-overlay" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #F3E5AB; text-align: center; background: rgba(0,0,0,0.25);">
-                    <i class="fa-solid fa-book-journal-whills" style="font-size: 2rem; margin-bottom: 1rem; color: var(--color-accent, #d4af37);"></i>
-                    <h3 style="font-family: var(--font-accent, serif); font-size: 2.2rem; letter-spacing: 2px; text-transform: uppercase; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);" data-i18n="journey.notebookTitle">NHẬT KÝ CỦA TÔI</h3>
-                    <p style="font-family: serif; font-style: italic; font-size: 1rem; margin-top: 15px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);" data-i18n="journey.notebookHint">~ Nhấn để mở ~</p>
-                  </div>
-                </div>
-                <div class="cover-back"></div>
-                <div class="notebook-spine"></div>
-                <div class="notebook-corner cb-tl"></div>
-                <div class="notebook-corner cb-tr"></div>
-                <div class="notebook-corner cb-bl"></div>
-                <div class="notebook-corner cb-br"></div>
-              </div>
-
-              <div class="notebook-thickness">
-                <div class="thickness-layer layer-1"></div>
-                <div class="thickness-layer layer-2"></div>
-                <div class="thickness-layer layer-3"></div>
-                <div class="thickness-layer layer-4"></div>
-              </div>
-
-              <div class="notebook-pages">
-                <div class="page page-left">
-                  <h4 data-i18n="journey.expTitle">Kinh Nghiệm</h4>
-                  <div class="entry">
-                    <span class="year">2025</span>
-                    <p data-i18n="journey.exp1">Sáng lập & Phát triển dự án VNDEER</p>
-                  </div>
-                  <div class="entry">
-                    <span class="year">2025</span>
-                    <p data-i18n="journey.exp2">Phát triển AI Chatbot Chứng khoán</p>
-                  </div>
-                  <div class="entry">
-                    <span class="year">2025</span>
-                    <p data-i18n="journey.exp3">Trưởng nhóm Bond & Benefit (B&B)</p>
-                  </div>
-                </div>
-                <div class="page page-right">
-                  <h4 data-i18n="journey.skillsTitle">Kỹ Năng</h4>
-                  <div class="doodle-grid">
-                    <div class="doodle"><i class="fa-solid fa-chart-line"></i><span data-i18n="journey.doodle1">Tài chính</span></div>
-                    <div class="doodle"><i class="fa-solid fa-brain"></i><span data-i18n="journey.doodle2">AI Code</span></div>
-                    <div class="doodle"><i class="fa-solid fa-users"></i><span data-i18n="journey.doodle3">Lãnh đạo</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           </div>
         </div>
       </div>
@@ -417,68 +391,661 @@
   <!-- Color transition -->
   <div class="color-transition"></div>
 
-  <!-- ===== PORTFOLIO — Van Gogh Background ===== -->
-  <section class="portfolio has-bg glass-section" id="portfolio">
+  <!-- ===== CERTIFICATES SECTION (Placed BEFORE Projects) ===== -->
+  <section class="certificates has-bg glass-section" id="certificates">
     <div class="portfolio-container">
-
-
-
       <div class="section-header reveal">
-        <div class="section-label" data-i18n="portfolio.label">Kho lưu trữ</div>
-        <h2 class="section-title split-text" data-i18n-split="portfolio.title"><span class="accent">DỰ ÁN</span> NỔI BẬT</h2>
+        <div class="section-label" data-i18n="cert.label">Thành tích</div>
+        <h2 class="section-title split-text" data-i18n-split="cert.title"><span class="accent">CHỨNG CHỈ</span> CÁ NHÂN</h2>
       </div>
-
-      <!-- Projects Carousel -->
-      <div class="cert-carousel-container" style="margin-top: 2rem;">
-        <button class="cert-carousel-btn prev-btn" aria-label="Previous project"><i class="fa-solid fa-chevron-left"></i></button>
+      
+      <!-- TOP CERTIFICATES CAROUSEL -->
+      <h3 class="cert-section-title" style="margin-top: 2rem;" data-i18n-html="cert.featuredTitle"><i class="fa-solid fa-star" style="color: var(--color-accent);"></i> Chứng Chỉ Tiêu Biểu (Featured)</h3>
+      <div class="cert-carousel-container">
+        <button class="cert-carousel-btn prev-btn" aria-label="Previous featured certificate"><i class="fa-solid fa-chevron-left"></i></button>
         
-        <div class="cert-carousel-track" style="gap: 2rem; padding: 1rem 5px;">
-          <!-- VNDEER Project -->
-          <div class="project-card reveal spotlight-card" style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; margin-bottom: 0;">
+        <div class="cert-carousel-track cert-grid-top">
+          <div class="cert-card reveal spotlight-card featured-card zoomable-card">
             <div class="spotlight-glow"></div>
-            <img src="asset/project-web.png" alt="Dự án VNDEER" data-i18n-alt="portfolio.proj1Title" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
-            <div class="project-card-body" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
-              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;" data-i18n="portfolio.proj1Title">Dự án VNDEER</h4>
-              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;" data-i18n="portfolio.proj1Desc">Nền tảng công nghệ hỗ trợ điều phối cứu trợ và sơ tán khẩn cấp khi gặp thiên tai tại Việt Nam.</p>
-              <div class="project-tags" style="display: flex; flex-wrap: wrap; gap: 8px;"><span>Founder & Dev</span><span>Data Arch</span><span>Dashboard</span><span>AI/UI/UX</span></div>
-            </div>
+            <img src="cert/top/uni.jpg" alt="Chứng chỉ tiêu biểu UEH" class="cert-img zoomable-img">
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
-          <!-- AI Chatbot Project -->
-          <div class="project-card reveal spotlight-card" style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; margin-bottom: 0;">
+          <div class="cert-card reveal spotlight-card featured-card zoomable-card">
             <div class="spotlight-glow"></div>
-            <img src="asset/project-api.png" alt="AI Chatbot Chứng khoán" data-i18n-alt="portfolio.proj2Title" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
-            <div class="project-card-body" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
-              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;" data-i18n="portfolio.proj2Title">AI Chatbot Chứng khoán</h4>
-              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;" data-i18n="portfolio.proj2Desc">Công cụ tự động hóa hỗ trợ nhà đầu tư trích xuất thông tin, phân tích dữ liệu thị trường chứng khoán theo thời gian thực.</p>
-              <div class="project-tags" style="display: flex; flex-wrap: wrap; gap: 8px;"><span>Dev / Data Analyst</span><span>FinTech</span><span>Python</span><span>Generative AI</span></div>
-            </div>
+            <img src="cert/top/z7838057981935_e8581120a00278ad69e6d885242a1b4b.jpg" alt="Chứng chỉ tiêu biểu 1" class="cert-img zoomable-img">
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
-          <!-- UI/UX Dashboard Project -->
-          <div class="project-card reveal spotlight-card" style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; margin-bottom: 0;">
+          <div class="cert-card reveal spotlight-card featured-card zoomable-card">
             <div class="spotlight-glow"></div>
-            <img src="asset/project-ui-1.png" alt="Dashboard Điều phối VNDEER" data-i18n-alt="portfolio.proj3Title" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
-            <div class="project-card-body" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
-              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;" data-i18n="portfolio.proj3Title">Dashboard Điều phối</h4>
-              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;" data-i18n="portfolio.proj3Desc">Hệ thống bảng điều khiển trực quan cho nhà điều phối cứu trợ thiên tai và sơ tán khẩn cấp.</p>
-              <div class="project-tags" style="display: flex; flex-wrap: wrap; gap: 8px;"><span>UI/UX Design</span><span>Dashboard</span><span>Emergency UX</span></div>
-            </div>
+            <img src="cert/top/z7838058017550_9bbc3d8737998eb17e48949b2e6c7f5d.jpg" alt="Chứng chỉ tiêu biểu 2" class="cert-img zoomable-img">
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
-          <!-- Volunteer Project -->
-          <div class="project-card reveal spotlight-card" style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; margin-bottom: 0;">
+          <div class="cert-card reveal spotlight-card featured-card zoomable-card">
             <div class="spotlight-glow"></div>
-            <img src="asset/project-mobile.png" alt="Dự án Tình nguyện Cộng đồng" data-i18n-alt="portfolio.proj4Title" class="project-card-img" style="width: 100%; height: 200px; object-fit: cover;">
-            <div class="project-card-body" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
-              <h4 style="margin-bottom: 0.5rem; color: var(--color-accent); font-family: var(--font-accent); font-size: 1.2rem;" data-i18n="portfolio.proj4Title">Dự án Tình nguyện</h4>
-              <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1;" data-i18n="portfolio.proj4Desc">Dẫn dắt đội ngũ thực hiện chiến dịch tình nguyện và gây quỹ hỗ trợ cộng đồng bị ảnh hưởng bởi thiên tai.</p>
-              <div class="project-tags" style="display: flex; flex-wrap: wrap; gap: 8px;"><span>Coordinator</span><span>Fundraising</span><span>Social Impact</span></div>
-            </div>
+            <img src="cert/top/z7838058020545_ecc3973ae5b41f0247aa41ac383dd905.jpg" alt="Chứng chỉ tiêu biểu 3" class="cert-img zoomable-img">
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+          </div>
+          <div class="cert-card reveal spotlight-card featured-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/top/z7838058027497_0fe2676590c54ebb0d36c31bb5c6a59f.jpg" alt="Chứng chỉ tiêu biểu 4" class="cert-img zoomable-img">
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+          </div>
+          <div class="cert-card reveal spotlight-card featured-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/top/z7838058036435_97c6e4e6d45415cef338c9c5d160ac45.jpg" alt="Chứng chỉ tiêu biểu 5" class="cert-img zoomable-img">
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
+          </div>
+          <div class="cert-card reveal spotlight-card featured-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/top/z7838058038189_bda23d4cdfb907f35436a07dd162906d.jpg" alt="Chứng chỉ tiêu biểu 6" class="cert-img zoomable-img">
+            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
           </div>
         </div>
         
-        <button class="cert-carousel-btn next-btn" aria-label="Next project"><i class="fa-solid fa-chevron-right"></i></button>
+        <button class="cert-carousel-btn next-btn" aria-label="Next featured certificate"><i class="fa-solid fa-chevron-right"></i></button>
       </div>
 
-      <!-- Stats Moved Here -->
+      <!-- OTHER CERTIFICATES CAROUSEL -->
+      <h3 class="cert-section-title" style="margin-top: 4rem;" data-i18n-html="cert.otherTitle"><i class="fa-solid fa-award"></i> Chứng Chỉ Khác</h3>
+      <div class="cert-carousel-container">
+        <button class="cert-carousel-btn prev-btn" aria-label="Previous certificate"><i class="fa-solid fa-chevron-left"></i></button>
+        
+        <div class="cert-carousel-track cert-grid-other">
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838057984066_72d20b698ea65ac8412501a8ffe21cec.jpg" alt="Chứng chỉ 2" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838057990268_ab8893ee6213c3e6bab59687dc364f47.jpg" alt="Chứng chỉ 3" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838057994501_fc65e3e8b58bc18c19c82d0832c74ec4.jpg" alt="Chứng chỉ 4" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838057995980_424bec23536f11efc6195a457ba1ab5e.jpg" alt="Chứng chỉ 5" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838057996380_77e98b4b50481183dd33802f3918dc90.jpg" alt="Chứng chỉ 6" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838057998328_99c26769ec7df0b1757cb759f156f7a5.jpg" alt="Chứng chỉ 7" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058005342_0fa54cbac899ee8ddd48b91365fe3752.jpg" alt="Chứng chỉ 8" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058006253_c376cfeaf84f876870301b992c57111e.jpg" alt="Chứng chỉ 9" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058007750_6233dea412bff8a6bfcb9b9c6a0645a9.jpg" alt="Chứng chỉ 10" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058009531_3d74efe93e1f2dbc6b9665831151e558.jpg" alt="Chứng chỉ 11" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058013347_082a98459df7f071741063afd52e089c.jpg" alt="Chứng chỉ 12" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058013982_afe666a84289ccfcb13e367d2b53a198.jpg" alt="Chứng chỉ 13" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058023728_576afdf5bbb1227e5233fa633988178d.jpg" alt="Chứng chỉ 16" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058033633_c300b73e51cf37fc73b6b8ceac6ec0c9.jpg" alt="Chứng chỉ 18" class="cert-img zoomable-img">
+          </div>
+          <div class="cert-card reveal spotlight-card zoomable-card">
+            <div class="spotlight-glow"></div>
+            <img src="cert/bot/z7838058036208_5bf81f9be5629f3c06ee0fa847beb986.jpg" alt="Chứng chỉ 19" class="cert-img zoomable-img">
+          </div>
+        </div>
+        
+        <button class="cert-carousel-btn next-btn" aria-label="Next certificate"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PORTFOLIO / DETAILED PROJECTS SHOWCASE ===== -->
+  <section class="portfolio has-bg glass-section" id="portfolio">
+    <div class="portfolio-container">
+
+      <div class="section-header reveal">
+        <div class="section-label" data-i18n="portfolio.label">Kho lưu trữ giải pháp công nghệ</div>
+        <h2 class="section-title split-text" data-i18n-split="portfolio.title"><span class="accent">DỰ ÁN</span> TIÊU BIỂU</h2>
+      </div>
+
+      <div class="projects-showcase">
+
+        <!-- ================= SECTION 1: STOCK TECHNICAL ANALYSIS & AUTO SCREENER (VN100) ================= -->
+        <article class="project-section-block reveal spotlight-card" id="project-stock-vn100">
+          <div class="spotlight-glow"></div>
+          <div class="project-header-bar">
+            <div class="project-header-titles">
+              <span class="project-badge-pill"><i class="fa-solid fa-chart-line"></i> <span data-i18n="pStock.badge">SECTION 01 • FINTECH & QUANTITATIVE TRADING</span></span>
+              <h3 data-i18n="pStock.title">1. Dự án Phân tích & Sàng lọc Cổ phiếu Tự động (VN100)</h3>
+              <p class="project-overview-text" data-i18n="pStock.overview">
+                Hệ thống tự động quét ~130 mã cổ phiếu VN100, phân tích chỉ báo kỹ thuật thời gian thực, kiểm thử chiến lược (Backtest) và đề xuất kế hoạch giao dịch theo tỷ lệ thắng (Win Rate).
+              </p>
+            </div>
+            <div class="project-tech-pills">
+              <span>VN100 Auto-Screener</span>
+              <span>Multi-Strategy Backtest</span>
+              <span>Fibonacci & Ichimoku</span>
+              <span>Risk:Reward Engine</span>
+              <span>Seasonality Analytics</span>
+            </div>
+          </div>
+
+          <div class="project-content-grid">
+            <!-- Left: Detailed Capabilities -->
+            <div class="project-features-list">
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-bullseye"></i>
+                  <span data-i18n="pStock.f1Title">Sàng lọc Cổ phiếu Tự động</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="pStock.f1Desc">
+                  Quét tự động ~130 mã cổ phiếu qua 8 chiến lược định lượng, xếp hạng Top 10 mã ngắn hạn (3–14 ngày) có tỷ lệ thắng (Win Rate) cao nhất.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-scale-balanced"></i>
+                  <span data-i18n="pStock.f2Title">Kế hoạch Giao dịch & Quản trị Rủi ro</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="pStock.f2Desc">
+                  Tự động xác định vùng mua/bán, điểm chốt lời (TP), cắt lỗ (SL), tỷ lệ R:R và đề xuất chia tỷ trọng giải ngân an toàn theo 3 đợt.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-chart-simple"></i>
+                  <span data-i18n="pStock.f3Title">Biểu đồ Kỹ thuật & Dữ liệu Real-time</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="pStock.f3Desc">
+                  Cập nhật bảng giá trực tiếp trong phiên cùng biểu đồ nến Nhật tích hợp Fibonacci, Ichimoku, Bollinger Bands, RSI, Stochastic và ADX.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-flask-vial"></i>
+                  <span data-i18n="pStock.f4Title">Kiểm thử Chiến lược (Backtest)</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="pStock.f4Desc">
+                  So sánh hiệu suất các chỉ báo trên khung ngắn hạn và dài hạn, thống kê tỷ lệ thắng/thua, nhật ký lệnh và tháng giao dịch tốt nhất.
+                </p>
+              </div>
+            </div>
+
+            <!-- Right: Featured Preview + 9-Image Visual Gallery -->
+            <div class="project-media-panel">
+              <div class="project-video-wrap zoomable-card">
+                <img src="asset/projects/stock-action-plan.png" alt="VN100 Stock Trading Action Plan" class="project-hero-img zoomable-img">
+                <div class="project-video-caption">
+                  <i class="fa-solid fa-magnifying-glass-chart"></i>
+                  <span data-i18n="pStock.heroCaption">Kế hoạch hành động giao dịch tự động & Quản trị rủi ro (Nhấn để phóng to)</span>
+                </div>
+              </div>
+
+              <div class="project-gallery-grid">
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-vn100-scanner.png" alt="Sàng lọc cổ phiếu tự động VN100" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img1Caption">Quét tự động ~130 mã VN100</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-top10-winrate.png" alt="Top 10 Cổ phiếu Ngắn hạn theo Win Rate" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img2Caption">Top 10 Ngắn hạn (Win Rate)</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-action-plan.png" alt="Kế hoạch giao dịch chi tiết DNW" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img3Caption">Vùng Mua/Bán & R:R 1:3.6</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-realtime-price.png" alt="Lịch sử giá Real-time & Khuyến nghị mua VCB" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img4Caption">Giá Real-time & Tín hiệu Mua</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-candlestick-fib.png" alt="Biểu đồ nến Nhật Fibonacci & Ichimoku" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img5Caption">Nến Nhật, Fibonacci & Ichimoku</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-multi-indicators.png" alt="Đồ thị chỉ báo RSI, Stochastic, StdDev, ADX" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img6Caption">RSI, Stochastic, StdDev & ADX</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-backtest-compare.png" alt="So sánh Backtest Ngắn hạn & Dài hạn" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img7Caption">Backtest Ngắn & Dài hạn</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-backtest-detail.png" alt="Chi tiết tỷ lệ thắng 100% & Phân bổ tháng" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img8Caption">Win Rate 100% & Chu kỳ tháng</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/stock-monthly-performance.png" alt="Biểu đồ hiệu suất theo tháng & Nhật ký lệnh" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pStock.img9Caption">Hiệu suất tháng & Nhật ký lệnh</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= SECTION 2: HUREA HUB ================= -->
+        <article class="project-section-block reveal spotlight-card" id="project-hurea-hub">
+          <div class="spotlight-glow"></div>
+          <div class="project-header-bar">
+            <div class="project-header-titles">
+              <span class="project-badge-pill"><i class="fa-solid fa-users-gear"></i> <span data-i18n="pHurea.badge">SECTION 02 • HR TECH & CLUB ERP PLATFORM</span></span>
+              <h3 data-i18n="pHurea.title">2. Dự án Hệ thống Quản trị Nhân sự CLB (HuReA Hub)</h3>
+              <p class="project-overview-text" data-i18n="pHurea.overview">
+                Nền tảng quản trị nội bộ và đồng bộ dữ liệu thời gian thực cho 113+ thành viên CLB HuReA, số hóa toàn diện từ hồ sơ nhân sự, điều phối dự án đến đánh giá hiệu suất 360°.
+              </p>
+            </div>
+            <div class="project-tech-pills">
+              <span>Lead Dev & Visionary</span>
+              <span>Real-Time Data Sync</span>
+              <span>360° HR Evaluation</span>
+              <span>PDF/Excel Batch Engine</span>
+              <span>Privacy Showcase Mode</span>
+            </div>
+          </div>
+
+          <div class="project-content-grid">
+            <!-- Left: Detailed Capabilities -->
+            <div class="project-features-list">
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-gauge-high"></i>
+                  <span data-i18n="pHurea.f1Title">Quản trị Nhân sự & Đa Nhiệm kỳ</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="pHurea.f1Desc">
+                  Quản lý hồ sơ 113+ thành viên theo các Ban chuyên môn, vinh danh Top 5 cá nhân xuất sắc, chuyển đổi linh hoạt giữa các nhiệm kỳ và hỗ trợ ẩn danh dữ liệu nhạy cảm.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-diagram-project"></i>
+                  <span data-i18n="pHurea.f2Title">Điều phối Dự án & Minh chứng</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="pHurea.f2Desc">
+                  Theo dõi tiến độ chương trình (Setup, Running, Finish), phân công Project Leader, chia team nhân sự và quản lý thư mục nộp minh chứng chuẩn hóa.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-ranking-star"></i>
+                  <span data-i18n="pHurea.f3Title">Đánh giá 360° & Xuất Báo cáo</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="pHurea.f3Desc">
+                  Chấm điểm tự động theo 4 cấu phần (Hoạt động CLB, Ban, Đánh giá chéo, Điểm cộng), tổng hợp xếp loại thang 10 và xuất file PDF/Excel hàng loạt.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-calendar-check"></i>
+                  <span data-i18n="pHurea.f4Title">Xếp Lịch Họp & Tiện ích Nội bộ</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="pHurea.f4Desc">
+                  Tạo vote tìm khung giờ họp tối ưu cho nhóm, tích hợp hòm Góp ý &amp; Confession ẩn danh, báo lỗi hệ thống và cấp phát mật khẩu hàng loạt.
+                </p>
+              </div>
+            </div>
+
+            <!-- Right: Featured Preview + 9-Image Visual Gallery -->
+            <div class="project-media-panel">
+              <div class="project-video-wrap zoomable-card">
+                <img src="asset/projects/04_trang_chu_dashboard.png" alt="HuReA Hub Dashboard V20" class="project-hero-img zoomable-img">
+                <div class="project-video-caption">
+                  <i class="fa-solid fa-desktop"></i>
+                  <span data-i18n="pHurea.heroCaption">Giao diện Dashboard Quản trị HuReA Hub Admin V20 (Nhấn để phóng to)</span>
+                </div>
+              </div>
+
+              <div class="project-gallery-grid">
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/01_man_hinh_dang_nhap.png" alt="Cổng đăng nhập HuReA Hub" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img1Caption">Cổng Đăng nhập & Showcase</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/06_tai_nguyen_nhan_su_grid.png" alt="Tài nguyên nhân sự 113 thành viên" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img2Caption">Danh bạ 113+ Nhân sự (Grid)</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/08_chi_tiet_thanh_vien_modal.png" alt="Hồ sơ chi tiết thành viên" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img3Caption">Hồ sơ Chi tiết Thành viên</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/10_chi_tiet_du_an_modal.png" alt="Quản lý chương trình & Phân bổ Team" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img4Caption">Thiết lập Dự án & Team/PL</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/12_chinh_sua_nhiem_ky_modal.png" alt="Quản lý Đa Nhiệm kỳ & Ban chuyên môn" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img5Caption">Quản lý Nhiệm kỳ & Các Ban</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/13_danh_gia_toan_clb.png" alt="Đánh giá hoạt động CLB & Nhập Excel" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img6Caption">Chấm điểm & Nhập Excel</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/16_tong_ket_diem_va_xep_loai.png" alt="Bảng hiệu suất tổng hợp & Xuất PDF hàng loạt" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img7Caption">Bảng Điểm & Xuất PDF/Excel</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/19_xep_lich_hop.png" alt="Xếp lịch họp thông minh" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img8Caption">Vote & Xếp Lịch Họp Tối ưu</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/20_bao_cao_loi.png" alt="Lead Developer Nguyễn Phúc & Báo cáo lỗi" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img9Caption">Hồ sơ Lead Dev & Báo lỗi</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/17_feedback_va_confession.png" alt="Góp ý & Confession ẩn danh" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img10Caption">Góp ý & Confession Ẩn danh</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/18_nop_minh_chung.png" alt="Hệ thống nộp minh chứng chuẩn hóa" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img11Caption">Hệ thống Nộp Minh Chứng</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/21_quan_ly_mat_khau.png" alt="Quản lý mật khẩu thành viên hàng loạt" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="pHurea.img12Caption">Quản lý Mật khẩu Hàng loạt</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= SECTION 3: AVI HEALTH ================= -->
+        <article class="project-section-block reveal spotlight-card" id="project-avi-health">
+          <div class="spotlight-glow"></div>
+          <div class="project-header-bar">
+            <div class="project-header-titles">
+              <span class="project-badge-pill"><i class="fa-solid fa-heart-pulse"></i> <span data-i18n="p1.badge">SECTION 03 • HEALTH TECH & AI</span></span>
+              <h3 data-i18n="p1.title">3. Dự án Bot phân tích sức khỏe (AVI Health)</h3>
+              <p class="project-overview-text" data-i18n="p1.overview">
+                Hệ sinh thái chăm sóc sức khỏe chủ động kết hợp Trợ lý ảo thông minh (Botpress) và Thị giác máy tính (Teachable Machine AI), giúp cá nhân hóa thực đơn dinh dưỡng, kiểm định độ tươi thực phẩm qua camera và đồng hành rèn luyện thể chất mỗi ngày.
+              </p>
+            </div>
+            <div class="project-tech-pills">
+              <span>Botpress AI</span>
+              <span>Teachable Machine</span>
+              <span>Computer Vision</span>
+              <span>BMI & Nutrition Engine</span>
+            </div>
+          </div>
+
+          <div class="project-content-grid">
+            <!-- Left: Detailed Capabilities -->
+            <div class="project-features-list">
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-robot"></i>
+                  <span data-i18n="p1.f1Title">Trợ lý ảo thông minh (Avi)</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p1.f1Desc">
+                  Sử dụng nền tảng Botpress để giao tiếp tự nhiên, tính toán chính xác chỉ số BMI từ chiều cao và cân nặng. Bot tự động thiết kế thực đơn chi tiết dựa trên lượng calo mục tiêu và các nguyên liệu người dùng đang có sẵn (ví dụ: thịt heo, cà chua, cà rốt), kèm theo hướng dẫn chế biến từng bước và gợi ý lịch tập luyện khoa học.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-camera-viewfinder"></i>
+                  <span data-i18n="p1.f2Title">Kiểm định thực phẩm bằng AI</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p1.f2Desc">
+                  Tích hợp mô hình học máy (Teachable Machine Image Model) cho phép quét và phân tích độ tươi ngon của thịt, cá, trái cây, rau củ trực tiếp qua camera điện thoại theo thời gian thực, cảnh báo thực phẩm kém chất lượng để bảo vệ sức khỏe gia đình.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-bell-concierge"></i>
+                  <span data-i18n="p1.f3Title">Cộng đồng & Tiện ích Sức khỏe</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p1.f3Desc">
+                  Tích hợp diễn đàn hỏi đáp sức khỏe cộng đồng, cập nhật tin tức dinh dưỡng, mẹo bảo quản thực phẩm an toàn cùng hệ thống công cụ nhắc nhở uống thuốc và lịch tập luyện thông minh.
+                </p>
+              </div>
+            </div>
+
+            <!-- Right: Video Demo + AI Visual Gallery -->
+            <div class="project-media-panel">
+              <div class="project-video-wrap">
+                <video controls preload="none" poster="asset/projects/avi-health-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                  <source src="asset/projects/avi-health-demo.mp4" type="video/mp4">
+                </video>
+                <div class="project-video-caption">
+                  <i class="fa-solid fa-circle-play"></i>
+                  <span data-i18n="p1.videoCaption">Video thử nghiệm thực tế sản phẩm AVI Health</span>
+                </div>
+              </div>
+
+              <div class="project-gallery-grid">
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/avi-health-thumb.png" alt="AVI Health Overview" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p1.img1Caption">Tổng quan AVI Health</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/avi-health-ai-scan.png" alt="AI Food Freshness Scanner" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p1.img2Caption">AI Quét độ tươi thực phẩm</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/avi-health-bmi-menu.png" alt="Avi Bot BMI & Custom Menu" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p1.img3Caption">Tính BMI & Thiết kế thực đơn</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= SECTION 4: AVI SHIP ================= -->
+        <article class="project-section-block reveal spotlight-card" id="project-avi-ship">
+          <div class="spotlight-glow"></div>
+          <div class="project-header-bar">
+            <div class="project-header-titles">
+              <span class="project-badge-pill"><i class="fa-solid fa-truck-fast"></i> <span data-i18n="p2.badge">SECTION 04 • E-COMMERCE & EXPRESS LOGISTICS</span></span>
+              <h3 data-i18n="p2.title">4. Dự án Sàn thương mại rau củ (AVI Ship)</h3>
+              <p class="project-overview-text" data-i18n="p2.overview">
+                Nền tảng thương mại điện tử chuyên biệt cung ứng nông sản, thực phẩm tươi sống và nhu yếu phẩm gia đình, kết hợp luồng vận chuyển hỏa tốc theo thời gian thực để tối ưu hóa trọn vẹn trải nghiệm đi chợ online.
+              </p>
+            </div>
+            <div class="project-tech-pills">
+              <span>E-Commerce Platform</span>
+              <span>Real-Time Express Routing</span>
+              <span>Smart Merchandising</span>
+              <span>Mobile UI/UX</span>
+            </div>
+          </div>
+
+          <div class="project-content-grid">
+            <!-- Left: Detailed Capabilities -->
+            <div class="project-features-list">
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-basket-shopping"></i>
+                  <span data-i18n="p2.f1Title">Mô hình mua sắm thực phẩm chuyên biệt</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p2.f1Desc">
+                  Hoạt động độc lập như một nền tảng thương mại điện tử chuyên biệt, phân chia khoa học và rõ ràng các danh mục từ rau củ, trái cây tươi, trứng sạch đến các mặt hàng đồ dùng chăm sóc gia đình.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-bolt"></i>
+                  <span data-i18n="p2.f2Title">Vận chuyển hỏa tốc thời gian thực</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p2.f2Desc">
+                  Tích hợp luồng giao hàng nhanh theo thời gian thực (ví dụ: hiển thị lộ trình giao hỏa tốc trực tiếp đến trường THPT Lý Tự Trọng), đáp ứng tức thì nhu cầu cung ứng thực phẩm tươi sống trong ngày với chất lượng nguyên vẹn.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-fire-flame-curved"></i>
+                  <span data-i18n="p2.f3Title">Kích cầu mua sắm & Tối ưu trải nghiệm</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p2.f3Desc">
+                  Hiển thị nổi bật các mặt hàng bán chạy trong ngày (Best Sellers) cùng hệ thống danh mục khuyến mãi trực quan nhằm kích cầu mua sắm và tối ưu hóa trải nghiệm đi chợ online nhanh chóng, tiện lợi.
+                </p>
+              </div>
+            </div>
+
+            <!-- Right: Video Demo + AI Visual Gallery -->
+            <div class="project-media-panel">
+              <div class="project-video-wrap">
+                <video controls preload="none" poster="asset/projects/avi-ship-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                  <source src="asset/projects/avi-ship-demo.mp4" type="video/mp4">
+                </video>
+                <div class="project-video-caption">
+                  <i class="fa-solid fa-circle-play"></i>
+                  <span data-i18n="p2.videoCaption">Video giới thiệu hệ sinh thái AVI Health & Sàn thương mại AVI Ship</span>
+                </div>
+              </div>
+
+              <div class="project-gallery-grid">
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/avi-ship-thumb.png" alt="AVI Ship Overview" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p2.img1Caption">Bộ đôi AVI Health & Ship</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/avi-ship-ecommerce.png" alt="AVI Ship Grocery Marketplace" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p2.img2Caption">Danh mục nông sản & Khuyến mãi</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/avi-ship-express.png" alt="AVI Ship Express Delivery" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p2.img3Caption">Giao hỏa tốc THPT Lý Tự Trọng</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= SECTION 5: VNDEER ================= -->
+        <article class="project-section-block reveal spotlight-card" id="project-vndeer">
+          <div class="spotlight-glow"></div>
+          <div class="project-header-bar">
+            <div class="project-header-titles">
+              <span class="project-badge-pill"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="p3.badge">SECTION 05 • SOCIAL IMPACT & DISASTER RELIEF TECH</span></span>
+              <h3 data-i18n="p3.title">5. Dự án VNDEER (Hệ thống điều phối cứu trợ thiên tai)</h3>
+              <p class="project-overview-text" data-i18n="p3.overview">
+                Hệ thống công nghệ điều phối cứu trợ và ứng phó khẩn cấp toàn diện khi xảy ra thiên tai tại Việt Nam, tích hợp bản đồ SOS thời gian thực, định danh VNeID minh bạch, hồ sơ y tế khẩn cấp (ICE) và cảnh báo xả lũ hồ đập.
+              </p>
+            </div>
+            <div class="project-tech-pills">
+              <span>Founder & Lead Dev</span>
+              <span>Real-Time SOS GIS Map</span>
+              <span>VNeID QR Auth</span>
+              <span>ICE Medical Profile</span>
+              <span>Flood Alert System</span>
+            </div>
+          </div>
+
+          <div class="project-content-grid">
+            <!-- Left: Detailed Capabilities -->
+            <div class="project-features-list">
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                  <span data-i18n="p3.f1Title">Bản đồ tuyến đầu thời gian thực</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p3.f1Desc">
+                  Hiển thị trực quan các tín hiệu cấp cứu (SOS), vị trí các đội cứu hộ và điểm tập kết. Hệ thống cung cấp số liệu phân loại rõ ràng theo từng địa bàn (ví dụ: 16 hộ đang cần cứu trợ khẩn cấp tại Xã Vĩnh Lương) để điều hướng nguồn lực chính xác, tránh chồng chéo.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-qrcode"></i>
+                  <span data-i18n="p3.f2Title">Định danh minh bạch (VNeID)</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p3.f2Desc">
+                  Xác thực người nhận hàng cứu trợ thông qua tính năng quét mã QR trên Thẻ căn cước (VNeID), đảm bảo vật tư cứu trợ đến đúng người, đúng thời điểm và có thể truy xuất minh bạch toàn bộ lịch sử nhận hỗ trợ.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-kit-medical"></i>
+                  <span data-i18n="p3.f3Title">Hồ sơ Y tế khẩn cấp (ICE)</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p3.f3Desc">
+                  Lưu trữ các chỉ số sinh tồn và tiền sử bệnh lý quan trọng (nhóm máu, dị ứng, lịch sử phẫu thuật) cùng thông tin liên hệ của người thân, giúp lực lượng cứu hộ y tế có ngay phác đồ xử lý an toàn khi tiếp cận nạn nhân.
+                </p>
+              </div>
+
+              <div class="project-feature-item">
+                <div class="project-feature-title">
+                  <i class="fa-solid fa-house-flood-water-circle-arrow-right"></i>
+                  <span data-i18n="p3.f4Title">Cảnh báo rủi ro sinh tồn & Thủy điện</span>
+                </div>
+                <p class="project-feature-desc" data-i18n="p3.f4Desc">
+                  Cập nhật liên tục lưu lượng xả lũ, mực nước của các đập thủy điện (như đập Sông Cái) và cung cấp cẩm nang sinh tồn chi tiết khi bị cô lập, ngập lụt hoặc phải di chuyển trong vùng nguy hiểm.
+                </p>
+              </div>
+            </div>
+
+            <!-- Right: Dual Video Demos + AI Visual Gallery -->
+            <div class="project-media-panel">
+              <div class="project-video-wrap">
+                <video controls preload="none" poster="asset/projects/vndeer-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                  <source src="asset/projects/vndeer-showcase.mp4" type="video/mp4">
+                </video>
+                <div class="project-video-caption">
+                  <i class="fa-solid fa-circle-play"></i>
+                  <span data-i18n="p3.video1Caption">Video Showcase vận hành hệ thống điều phối VNDEER</span>
+                </div>
+              </div>
+
+              <div class="project-video-wrap">
+                <video controls preload="none" poster="asset/projects/vndeer-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                  <source src="asset/projects/vndeer-trailer.mp4" type="video/mp4">
+                </video>
+                <div class="project-video-caption">
+                  <i class="fa-solid fa-film"></i>
+                  <span data-i18n="p3.video2Caption">Trailer chính thức dự án cứu trợ thiên tai VNDEER</span>
+                </div>
+              </div>
+
+              <div class="project-gallery-grid">
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/vndeer-thumb.png" alt="VNDEER Disaster Relief Network" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p3.img1Caption">Mạng lưới cứu trợ VNDEER</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/vndeer-command-map.png" alt="VNDEER Frontline SOS Map" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p3.img2Caption">Bản đồ SOS & Đập Sông Cái</span>
+                </div>
+                <div class="project-gallery-item zoomable-card">
+                  <img src="asset/projects/vndeer-vneid-ice.png" alt="VNeID QR & ICE Medical Profile" class="zoomable-img">
+                  <span class="gallery-zoom-tag" data-i18n="p3.img3Caption">Định danh VNeID & Hồ sơ ICE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Stats Grid -->
       <div class="stats-grid reveal" style="margin-top: 5rem; grid-column: 1 / -1; width: 100%;">
 
         <!-- Stat Card 1 -->
@@ -489,7 +1056,7 @@
           <div class="stat-ornament stat-ornament-br"></div>
           <div class="spotlight-glow"></div>
           <div class="stat-icon"><i class="fa-solid fa-code"></i></div>
-          <div class="stat-number" data-count="4">0</div>
+          <div class="stat-number" data-count="5">0</div>
           <div class="stat-label" data-i18n="portfolio.stat1">Dự án sáng lập</div>
         </div>
 
@@ -521,192 +1088,12 @@
     </div>
   </section>
 
-  <!-- ===== CERTIFICATES SECTION ===== -->
-  <section class="certificates has-bg glass-section" id="certificates">
-    <div class="portfolio-container">
-      <div class="section-header reveal">
-        <div class="section-label" data-i18n="cert.label">Thành tích</div>
-        <h2 class="section-title split-text" data-i18n-split="cert.title"><span class="accent">CHỨNG CHỈ</span> CÁ NHÂN</h2>
-      </div>
-      
-      <!-- TOP CERTIFICATES CAROUSEL -->
-      <h3 class="cert-section-title" style="margin-top: 2rem;" data-i18n-html="cert.featuredTitle"><i class="fa-solid fa-star" style="color: var(--color-accent);"></i> Chứng Chỉ Tiêu Biểu (Featured)</h3>
-      <div class="cert-carousel-container">
-        <button class="cert-carousel-btn prev-btn" aria-label="Previous featured certificate"><i class="fa-solid fa-chevron-left"></i></button>
-        
-        <div class="cert-carousel-track cert-grid-top">
-          <div class="cert-card reveal spotlight-card featured-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/top/uni.jpg" alt="Chứng chỉ tiêu biểu UEH" class="cert-img">
-            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
-          </div>
-          <div class="cert-card reveal spotlight-card featured-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/top/z7838057981935_e8581120a00278ad69e6d885242a1b4b.jpg" alt="Chứng chỉ tiêu biểu 1" class="cert-img">
-            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
-          </div>
-          <div class="cert-card reveal spotlight-card featured-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/top/z7838058017550_9bbc3d8737998eb17e48949b2e6c7f5d.jpg" alt="Chứng chỉ tiêu biểu 2" class="cert-img">
-            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
-          </div>
-          <div class="cert-card reveal spotlight-card featured-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/top/z7838058020545_ecc3973ae5b41f0247aa41ac383dd905.jpg" alt="Chứng chỉ tiêu biểu 3" class="cert-img">
-            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
-          </div>
-          <div class="cert-card reveal spotlight-card featured-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/top/z7838058027497_0fe2676590c54ebb0d36c31bb5c6a59f.jpg" alt="Chứng chỉ tiêu biểu 4" class="cert-img">
-            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
-          </div>
-          <div class="cert-card reveal spotlight-card featured-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/top/z7838058036435_97c6e4e6d45415cef338c9c5d160ac45.jpg" alt="Chứng chỉ tiêu biểu 5" class="cert-img">
-            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
-          </div>
-          <div class="cert-card reveal spotlight-card featured-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/top/z7838058038189_bda23d4cdfb907f35436a07dd162906d.jpg" alt="Chứng chỉ tiêu biểu 6" class="cert-img">
-            <div class="featured-badge" data-i18n-html="cert.featuredBadge"><i class="fa-solid fa-star"></i> TIÊU BIỂU</div>
-          </div>
-        </div>
-        
-        <button class="cert-carousel-btn next-btn" aria-label="Next featured certificate"><i class="fa-solid fa-chevron-right"></i></button>
-      </div>
-
-      <!-- OTHER CERTIFICATES CAROUSEL -->
-      <h3 class="cert-section-title" style="margin-top: 4rem;" data-i18n-html="cert.otherTitle"><i class="fa-solid fa-award"></i> Chứng Chỉ Khác</h3>
-      <div class="cert-carousel-container">
-        <button class="cert-carousel-btn prev-btn" aria-label="Previous certificate"><i class="fa-solid fa-chevron-left"></i></button>
-        
-        <div class="cert-carousel-track cert-grid-other">
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838057984066_72d20b698ea65ac8412501a8ffe21cec.jpg" alt="Chứng chỉ 2" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838057990268_ab8893ee6213c3e6bab59687dc364f47.jpg" alt="Chứng chỉ 3" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838057994501_fc65e3e8b58bc18c19c82d0832c74ec4.jpg" alt="Chứng chỉ 4" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838057995980_424bec23536f11efc6195a457ba1ab5e.jpg" alt="Chứng chỉ 5" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838057996380_77e98b4b50481183dd33802f3918dc90.jpg" alt="Chứng chỉ 6" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838057998328_99c26769ec7df0b1757cb759f156f7a5.jpg" alt="Chứng chỉ 7" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058005342_0fa54cbac899ee8ddd48b91365fe3752.jpg" alt="Chứng chỉ 8" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058006253_c376cfeaf84f876870301b992c57111e.jpg" alt="Chứng chỉ 9" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058007750_6233dea412bff8a6bfcb9b9c6a0645a9.jpg" alt="Chứng chỉ 10" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058009531_3d74efe93e1f2dbc6b9665831151e558.jpg" alt="Chứng chỉ 11" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058013347_082a98459df7f071741063afd52e089c.jpg" alt="Chứng chỉ 12" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058013982_afe666a84289ccfcb13e367d2b53a198.jpg" alt="Chứng chỉ 13" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058023728_576afdf5bbb1227e5233fa633988178d.jpg" alt="Chứng chỉ 16" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058033633_c300b73e51cf37fc73b6b8ceac6ec0c9.jpg" alt="Chứng chỉ 18" class="cert-img">
-          </div>
-          <div class="cert-card reveal spotlight-card">
-            <div class="spotlight-glow"></div>
-            <img src="cert/bot/z7838058036208_5bf81f9be5629f3c06ee0fa847beb986.jpg" alt="Chứng chỉ 19" class="cert-img">
-          </div>
-        </div>
-        
-        <button class="cert-carousel-btn next-btn" aria-label="Next certificate"><i class="fa-solid fa-chevron-right"></i></button>
-      </div>
-
-      <!-- Certificate Lightbox -->
-      <div class="cert-lightbox" id="cert-lightbox">
-        <div class="cert-lightbox-overlay"></div>
-        <div class="cert-lightbox-content">
-          <button class="cert-lightbox-close">&times;</button>
-          <img src="" alt="Chứng chỉ" id="cert-lightbox-img">
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-
-
   <!-- ===== MASONRY GALLERY — React Bits Style ===== -->
   <section class="gallery-masonry-section has-bg glass-section" id="gallery-masonry" style="display: none;">
     <div class="gallery-container">
       <div class="section-header reveal">
         <div class="section-label" data-i18n="gallery.label">Ảnh nghệ thuật</div>
         <h2 class="section-title split-text" data-i18n-split="gallery.title"><span class="accent">MASONRY</span> GALLERY</h2>
-      </div>
-
-      <div class="masonry-wrap" style="position: relative; overflow: hidden; padding: 2rem 0;">
-        <div class="masonry-container" id="masonry-gallery">
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/project-web.png" alt="1">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/project-mobile.png" alt="2">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/project-api.png" alt="3">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/hero-bg.jpg" alt="4">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/bg-about.png" alt="5">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/bg-portfolio.png" alt="6">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/bg-hero.png" alt="7">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/bg-contact.png" alt="8">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/project-web.png" alt="9">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/hero-bg.jpg" alt="10">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/project-mobile.png" alt="11">
-          </div>
-          <div class="masonry-card reveal spotlight-card">
-            <div class="spotlight-glow"></div><img src="asset/bg-about.png" alt="12">
-          </div>
-        </div>
       </div>
     </div>
   </section>
@@ -724,7 +1111,7 @@
           <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
           <div class="contact-info">
             <h4 data-i18n="contact.emailLabel">Email</h4>
-            <p>phuc.ntt@student.ueh.edu.vn</p>
+            <p>pn852007@gmail.com</p>
           </div>
         </div>
         <div class="contact-item spotlight-card">
@@ -732,7 +1119,7 @@
           <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
           <div class="contact-info">
             <h4 data-i18n="contact.phoneLabel">Điện thoại</h4>
-            <p>+84 9xx xxx xxx</p>
+            <p>0342 381 843</p>
           </div>
         </div>
         <div class="contact-item spotlight-card">
@@ -748,7 +1135,7 @@
           <div class="contact-icon"><i class="fa-brands fa-github"></i></div>
           <div class="contact-info">
             <h4 data-i18n="contact.githubLabel">GitHub</h4>
-            <p>github.com/tienphuc2007</p>
+            <p>github.com/Tonykosuy</p>
           </div>
         </div>
       </div>
@@ -780,8 +1167,23 @@
         </div>
       </form>
     </div>
-    </div>
   </section>
+
+  <!-- ===== GLOBAL UNIVERSAL LIGHTBOX (Placed at body root so backdrop-filter never traps it!) ===== -->
+  <div class="cert-lightbox" id="cert-lightbox">
+    <div class="cert-lightbox-overlay" id="cert-lightbox-overlay"></div>
+    <div class="cert-lightbox-toolbar">
+      <button type="button" class="lightbox-tool-btn" id="lightbox-zoom-btn" title="Phóng to / Thu nhỏ">
+        <i class="fa-solid fa-magnifying-glass-plus"></i> <span data-i18n="lightbox.zoom">Phóng to / Thu nhỏ</span>
+      </button>
+      <button type="button" class="lightbox-tool-btn lightbox-close-btn" id="lightbox-close-btn" title="Đóng (Esc)">
+        <i class="fa-solid fa-xmark"></i> <span data-i18n="lightbox.close">Đóng</span>
+      </button>
+    </div>
+    <div class="cert-lightbox-content" id="cert-lightbox-content">
+      <img src="" alt="Preview" id="cert-lightbox-img">
+    </div>
+  </div>
 
   <!-- Floating Language Toggle (Visible before scrolling) -->
   <button class="lang-floating-btn" id="langFloatingBtn" onclick="toggleLanguage()" aria-label="Toggle Language" title="Chuyển đổi ngôn ngữ / Switch Language">
