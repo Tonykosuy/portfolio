@@ -3927,3 +3927,478 @@ audio::-webkit-media-controls-enclosure {
   overflow: hidden !important;
 }
 
+
+
+/* ===== WELCOME BILINGUAL MODAL (#portfolio-lang-modal) ===== */
+.portfolio-lang-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: rgba(6, 10, 24, 0.86);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.portfolio-lang-modal.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.portfolio-lang-card {
+  width: 100%;
+  max-width: 520px;
+  background: linear-gradient(155deg, rgba(12, 20, 44, 0.96), rgba(6, 10, 24, 0.96));
+  border: 1.5px solid rgba(255, 215, 0, 0.45);
+  border-radius: 26px;
+  padding: 2.4rem 2rem;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8), 0 0 50px rgba(255, 215, 0, 0.16);
+  text-align: center;
+  cursor: default;
+}
+
+.portfolio-lang-inner {
+  position: relative;
+  z-index: 2;
+}
+
+.portfolio-lang-icon {
+  font-size: 2.6rem;
+  color: var(--neon-gold);
+  margin-bottom: 0.8rem;
+  text-shadow: 0 0 20px var(--neon-gold-glow);
+}
+
+.portfolio-lang-title {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.6rem;
+}
+
+.portfolio-lang-sub {
+  font-size: 0.96rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin-bottom: 1.7rem;
+}
+
+.portfolio-lang-sub strong {
+  color: var(--neon-gold);
+}
+
+.portfolio-lang-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.portfolio-lang-choice {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 215, 0, 0.3);
+  border-radius: 16px;
+  padding: 1.15rem 1rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.portfolio-lang-choice:hover {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(212, 165, 116, 0.12));
+  border-color: var(--neon-gold);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(255, 215, 0, 0.22);
+}
+
+.lang-flag-emoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.lang-choice-name {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--neon-gold);
+}
+
+.lang-choice-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 500px) {
+  .portfolio-lang-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== PROJECT LINKS BAR (FLAGSHIP SECTIONS) ===== */
+.project-links-bar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0.8rem;
+  width: 100%;
+}
+
+.project-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-family: var(--font-accent);
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.28s ease;
+  cursor: pointer;
+}
+
+.project-link-btn.btn-repo {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 215, 0, 0.32);
+  color: #f8fafc;
+}
+
+.project-link-btn.btn-repo:hover {
+  background: rgba(255, 215, 0, 0.16);
+  border-color: var(--neon-gold);
+  color: var(--neon-gold);
+  transform: translateY(-2px);
+}
+
+.project-link-btn.btn-live {
+  background: linear-gradient(135deg, var(--neon-gold), var(--neon-amber));
+  border: 1px solid var(--neon-gold);
+  color: #060a18;
+  font-weight: 700;
+}
+
+.project-link-btn.btn-live:hover {
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.38);
+  transform: translateY(-2px);
+}
+
+/* ===== HAYLENTIENG METRICS PANEL ===== */
+.hl-highlight-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 215, 0, 0.22);
+  border-radius: 18px;
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hl-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.hl-metric {
+  background: rgba(6, 10, 24, 0.72);
+  border: 1px solid rgba(255, 215, 0, 0.16);
+  border-radius: 14px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.hl-val {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--neon-gold);
+}
+
+.hl-lbl {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.hl-note {
+  font-size: 0.95rem;
+  color: #e6dfd3;
+  line-height: 1.7;
+}
+
+/* ===== ALL 21 GITHUB REPOSITORIES DIRECTORY ===== */
+.github-directory-section {
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.github-dir-subtitle {
+  max-width: 780px;
+  margin: 0.9rem auto 0;
+  color: var(--text-secondary);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.github-dir-subtitle strong {
+  color: var(--neon-gold);
+}
+
+.github-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.1rem 1.3rem;
+  background: rgba(6, 10, 24, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.18);
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+}
+
+.github-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.repo-filter-btn {
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-family: var(--font-accent);
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.repo-filter-btn:hover {
+  border-color: var(--neon-gold);
+  color: #fff;
+}
+
+.repo-filter-btn.active {
+  background: linear-gradient(135deg, var(--neon-gold), var(--neon-amber));
+  border-color: var(--neon-gold);
+  color: #060a18;
+  font-weight: 700;
+}
+
+.github-search-wrap {
+  position: relative;
+  flex: 1 1 250px;
+  max-width: 340px;
+}
+
+.github-search-wrap i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--neon-gold);
+  font-size: 0.9rem;
+}
+
+.github-search-wrap input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.25s ease;
+}
+
+.github-search-wrap input:focus {
+  border-color: var(--neon-gold);
+}
+
+.github-repos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1.5rem;
+}
+
+.github-repo-card {
+  cursor: default;
+  border: 1px solid rgba(255, 215, 0, 0.16);
+  border-radius: 20px;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.github-repo-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 215, 0, 0.45);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55), 0 0 24px rgba(255, 215, 0, 0.12);
+}
+
+.github-repo-card.repo-hidden {
+  display: none !important;
+}
+
+.repo-card-inner {
+  position: relative;
+  z-index: 2;
+  padding: 1.55rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.repo-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.repo-index {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--neon-gold);
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.repo-cat-badge {
+  font-family: var(--font-accent);
+  font-size: 0.74rem;
+  color: var(--gold-bright);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.repo-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.repo-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  color: var(--neon-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.repo-title-row h4 {
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.35;
+  margin-bottom: 2px;
+}
+
+.repo-slug {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--gold-bright);
+  opacity: 0.85;
+}
+
+.repo-desc {
+  font-size: 0.92rem;
+  color: #e6dfd3;
+  line-height: 1.65;
+  flex: 1;
+}
+
+.repo-highlights {
+  font-size: 0.8rem;
+  color: var(--neon-gold);
+  background: rgba(255, 215, 0, 0.06);
+  border-left: 2px solid var(--neon-gold);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.repo-stack-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.repo-stack-pill {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.repo-card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 0.25rem;
+  position: relative;
+  z-index: 5;
+}
+
+.repo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-family: var(--font-accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.repo-btn-git {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #fff;
+}
+
+.repo-btn-git:hover {
+  background: rgba(255, 215, 0, 0.16);
+  border-color: var(--neon-gold);
+  color: var(--neon-gold);
+}
+
+.repo-btn-live {
+  background: linear-gradient(135deg, var(--neon-gold), var(--neon-amber));
+  border: 1px solid var(--neon-gold);
+  color: #060a18;
+}
+
+.repo-btn-live:hover {
+  box-shadow: 0 6px 18px rgba(255, 215, 0, 0.38);
+  transform: translateY(-1px);
+}
