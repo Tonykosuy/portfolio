@@ -108,6 +108,11 @@ const i18nTranslations = {
     "cert.otherTitle": "<i class=\"fa-solid fa-award\"></i> Chứng Chỉ Khác",
     "portfolio.label": "Kho lưu trữ giải pháp công nghệ",
     "portfolio.title": "<span class=\"accent\">DỰ ÁN</span> TIÊU BIỂU",
+    "portfolio.viewAlbumDetail": "Xem chi tiết Video & Ảnh",
+    "portfolio.photoAlbumBadge": "<i class=\"fa-solid fa-images\"></i> Album Ảnh",
+    "portfolio.videoAlbumBadge": "<i class=\"fa-solid fa-film\"></i> Video + Ảnh",
+    "portfolio.prevProject": "Dự án trước",
+    "portfolio.nextProject": "Dự án tiếp",
     "pStock.badge": "SECTION 01 • FINTECH & QUANTITATIVE TRADING",
     "pStock.title": "1. Dự án Phân tích & Sàng lọc Cổ phiếu Tự động (VN100)",
     "pStock.overview": "Hệ thống tự động quét ~130 mã cổ phiếu VN100, phân tích chỉ báo kỹ thuật thời gian thực, kiểm thử chiến lược (Backtest) và đề xuất kế hoạch giao dịch theo tỷ lệ thắng (Win Rate).",
@@ -287,6 +292,7 @@ const i18nTranslations = {
     "pHL.m4": "Phi lợi nhuận cộng đồng",
     "pHL.note": "Dashboard hỗ trợ lọc nhanh các cặp trùng khớp ≥80%, trùng 100% tên cha/mẹ và in báo cáo đối chiếu tức thì trên trình duyệt.",
     "pHL.cta": "Mở Bảng Đối Chiếu AI Live",
+    "pHL.heroCaption": "Tổng quan Hệ thống Đối chiếu AI 5D haylentieng.vn (Nhấn để phóng to)",
     "links.brokerGit": "GitHub: broker",
     "links.brokerLive": "Live: Broker",
     "links.quantGit": "GitHub: vn100-linear-quant",
@@ -318,16 +324,9 @@ const i18nTranslations = {
     "links.vndeerViGit": "GitHub: VN-DEER",
     "links.vndeerEnGit": "GitHub: VN-DEER_EN",
     "portfolio.stat1": "Dự án GitHub",
-    "githubDir.label": "✦ Toàn Bộ Hệ Sinh Thái Mã Nguồn Mở ✦",
-    "githubDir.title": "<span class=\"accent\">TẤT CẢ 21 DỰ ÁN</span> GITHUB",
-    "githubDir.subtitle": "Tổng hợp đầy đủ 21 repository trên GitHub <strong>github.com/Tonykosuy</strong> kèm mô tả chi tiết, giao diện song ngữ Việt/Anh khi truy cập và đường dẫn trực tiếp tới mã nguồn &amp; web chạy thực tế.",
-    "githubDir.filterAll": "Tất cả (21)",
-    "githubDir.filterFintech": "FinTech & Quant (4)",
-    "githubDir.filterAiVideo": "AI & Video Studio (4)",
-    "githubDir.filterHr": "HR & Automation (4)",
-    "githubDir.filterSocial": "Cộng đồng & Sức khỏe (6)",
-    "githubDir.filterWeb": "Web & Sáng tạo (3)",
-    "githubDir.searchPlaceholder": "Tìm dự án, công nghệ hoặc mô tả...",
+    "githubDir.label": "✦ Các Dự Án Mã Nguồn Mở Khác ✦",
+    "githubDir.title": "<span class=\"accent\">DỰ ÁN GITHUB</span> KHÁC",
+    "githubDir.subtitle": "Các repository tiêu biểu khác ngoài 9 album dự án trọng điểm phía trên tại <strong>github.com/Tonykosuy</strong> — kéo ngang hoặc bấm mũi tên để xem chi tiết &amp; chạy thử trực tiếp.",
     "githubDir.gitBtn": "GitHub Repo",
     "githubDir.liveBtn": "Mở Web Live",
     "githubDir.cat.fintech": "FINTECH & QUANT",
@@ -395,9 +394,9 @@ const i18nTranslations = {
     "repo.nusa_valo_watcher.title": "Nusa Valorant Watcher — Tự Động Điều Phối Tiến Trình Windows",
     "repo.nusa_valo_watcher.desc": "Tiện ích PowerShell chạy ngầm không cửa sổ dùng khóa Mutex hệ thống để theo dõi tiến trình Valorant mỗi 3 giây, tự động dừng Nusa khi vào game và khởi chạy lại sau khi thoát.",
     "repo.nusa_valo_watcher.feat": "Khóa Mutex 1 Instance • Chạy ẩn VBScript • Tự khởi chạy lại Nusa",
-    "repo.portfolio.title": "Personal Portfolio — Website Hồ Sơ Nghệ Thuật Van Gogh & 21 Dự Án",
-    "repo.portfolio.desc": "Website portfolio cá nhân chủ đề Đêm Đầy Sao (Van Gogh) tích hợp hiệu ứng Starlight Particles, GSAP Anti-Gravity, CV song ngữ phóng to, chứng chỉ và danh mục toàn bộ 21 dự án GitHub.",
-    "repo.portfolio.feat": "Song ngữ Việt/Anh • Lightbox CV/Chứng chỉ • 21 Dự án GitHub • Bảo vệ Media"
+    "repo.portfolio.title": "Personal Portfolio — Website Hồ Sơ Nghệ Thuật Van Gogh",
+    "repo.portfolio.desc": "Website portfolio cá nhân chủ đề Đêm Đầy Sao (Van Gogh) tích hợp hiệu ứng Starlight Particles, GSAP Anti-Gravity, CV song ngữ phóng to, chứng chỉ và album 9 dự án tiêu biểu.",
+    "repo.portfolio.feat": "Song ngữ Việt/Anh • Lightbox CV/Chứng chỉ • Album 9 Dự Án • Bảo vệ Media"
   },
   en: {
     "meta.title": "NGUYEN TRAN TIEN PHUC | Portfolio",
@@ -444,6 +443,11 @@ const i18nTranslations = {
     "cert.otherTitle": "<i class=\"fa-solid fa-award\"></i> Other Certificates",
     "portfolio.label": "Technology Solutions Archive",
     "portfolio.title": "<span class=\"accent\">FEATURED</span> PROJECTS",
+    "portfolio.viewAlbumDetail": "View Video & Photo Details",
+    "portfolio.photoAlbumBadge": "<i class=\"fa-solid fa-images\"></i> Photo Album",
+    "portfolio.videoAlbumBadge": "<i class=\"fa-solid fa-film\"></i> Video + Photos",
+    "portfolio.prevProject": "Previous Project",
+    "portfolio.nextProject": "Next Project",
     "pStock.badge": "SECTION 01 • FINTECH & QUANTITATIVE TRADING",
     "pStock.title": "1. Automated Stock Screener & Analysis System (VN100)",
     "pStock.overview": "Automatically scans ~130 VN100 stocks, analyzes real-time technical indicators, runs strategy backtests, and generates trading plans ranked by Win Rate.",
@@ -623,6 +627,7 @@ const i18nTranslations = {
     "pHL.m4": "Non-Profit Community",
     "pHL.note": "Interactive browser dashboard supports instant filtering for ≥80% matches, 100% parent-name overlaps, and print-ready verification reports.",
     "pHL.cta": "Open Live AI Matching Dashboard",
+    "pHL.heroCaption": "haylentieng.vn 5D AI Matching System Overview (Click to zoom)",
     "links.brokerGit": "GitHub: broker",
     "links.brokerLive": "Live: Broker",
     "links.quantGit": "GitHub: vn100-linear-quant",
@@ -654,16 +659,9 @@ const i18nTranslations = {
     "links.vndeerViGit": "GitHub: VN-DEER",
     "links.vndeerEnGit": "GitHub: VN-DEER_EN",
     "portfolio.stat1": "GitHub Projects",
-    "githubDir.label": "✦ Complete Open-Source Ecosystem ✦",
-    "githubDir.title": "<span class=\"accent\">ALL 21 GITHUB</span> PROJECTS",
-    "githubDir.subtitle": "Complete directory of all 21 repositories on <strong>github.com/Tonykosuy</strong> with detailed bilingual descriptions, VI/EN entry language selector on every web app, and direct links to source code &amp; live demos.",
-    "githubDir.filterAll": "All (21)",
-    "githubDir.filterFintech": "FinTech & Quant (4)",
-    "githubDir.filterAiVideo": "AI & Video Studio (4)",
-    "githubDir.filterHr": "HR & Automation (4)",
-    "githubDir.filterSocial": "Social & Health (6)",
-    "githubDir.filterWeb": "Web & Creative (3)",
-    "githubDir.searchPlaceholder": "Search project, tech stack, or description...",
+    "githubDir.label": "✦ Other Open-Source Repositories ✦",
+    "githubDir.title": "<span class=\"accent\">OTHER GITHUB</span> PROJECTS",
+    "githubDir.subtitle": "Additional repositories on <strong>github.com/Tonykosuy</strong> outside the 9 flagship project albums above — swipe or use the arrows to browse source code &amp; live demos.",
     "githubDir.gitBtn": "GitHub Repo",
     "githubDir.liveBtn": "Open Live Web",
     "githubDir.cat.fintech": "FINTECH & QUANT",
@@ -731,9 +729,9 @@ const i18nTranslations = {
     "repo.nusa_valo_watcher.title": "Nusa Valorant Watcher — Automated PowerShell Mutex Process Watcher",
     "repo.nusa_valo_watcher.desc": "Silent background PowerShell utility guarded by a Windows Mutex lock that polls Valorant every 3 seconds, pausing Nusa during gameplay and relaunching it cleanly on exit.",
     "repo.nusa_valo_watcher.feat": "Single-Instance Mutex • Hidden VBScript Runner • Auto-Relaunch",
-    "repo.portfolio.title": "Personal Portfolio — Interactive Van Gogh 3D & 21-Project Showcase",
-    "repo.portfolio.desc": "Starry Night themed personal portfolio featuring Three.js/GSAP anti-gravity tickets, bilingual VI/EN switcher & welcome prompt, zoomable CVs, certificates, and all 21 GitHub repos.",
-    "repo.portfolio.feat": "Bilingual VI/EN • Zoomable CV & Certs • All 21 GitHub Repos • Media Guard"
+    "repo.portfolio.title": "Personal Portfolio — Interactive Van Gogh Starry Night Showcase",
+    "repo.portfolio.desc": "Starry Night themed personal portfolio featuring GSAP anti-gravity tickets, bilingual VI/EN switcher & welcome prompt, zoomable CVs, certificates, and interactive project albums.",
+    "repo.portfolio.feat": "Bilingual VI/EN • Zoomable CV & Certs • 9 Project Albums • Media Guard"
   }
 };
 
@@ -1122,7 +1120,10 @@ const initCertLightbox = () => {
   const closeLightbox = () => {
     lightbox.classList.remove('show');
     if (lightboxContent) lightboxContent.classList.remove('zoomed');
-    document.body.style.overflow = '';
+    const detailModal = document.getElementById('project-detail-modal');
+    if (!detailModal || !detailModal.classList.contains('open')) {
+      document.body.style.overflow = '';
+    }
   };
 
   const toggleZoom = (e) => {
@@ -1160,8 +1161,20 @@ const initCertLightbox = () => {
     overlay.addEventListener('click', closeLightbox);
   }
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && lightbox.classList.contains('show')) {
-      closeLightbox();
+    if (e.key === 'Escape') {
+      if (lightbox.classList.contains('show')) {
+        closeLightbox();
+      } else {
+        const detailModal = document.getElementById('project-detail-modal');
+        if (detailModal && detailModal.classList.contains('open')) {
+          closeProjectAlbumModal();
+        }
+      }
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const detailModal = document.getElementById('project-detail-modal');
+      if (detailModal && detailModal.classList.contains('open') && !lightbox.classList.contains('show')) {
+        navigateProjectAlbum(e.key === 'ArrowRight' ? 1 : -1);
+      }
     }
   });
 };
@@ -1233,7 +1246,7 @@ const initAntiGravity = () => {
 
 // ===== CERTIFICATE CAROUSEL CONTROL =====
 const initCertCarousels = () => {
-  document.querySelectorAll('.cert-carousel-container').forEach(container => {
+  document.querySelectorAll('.cert-carousel-container:not(.repo-carousel-container)').forEach(container => {
     const track = container.querySelector('.cert-carousel-track');
     const prevBtn = container.querySelector('.prev-btn');
     const nextBtn = container.querySelector('.next-btn');
@@ -1310,12 +1323,20 @@ const initAll = () => {
   try {
     const globalVideo = document.getElementById('globalVideo');
     if (globalVideo) {
-      globalVideo.currentTime = 3.0;
-      globalVideo.play().catch(e => console.warn("Autoplay failed:", e));
+      if (window.__PORTFOLIO_MEDIA_READY__) {
+        if (globalVideo.readyState >= 1 && globalVideo.duration > 3.1 && globalVideo.currentTime < 2.9) {
+          globalVideo.currentTime = 3.0;
+        }
+        globalVideo.play().catch(() => {});
+      }
 
       globalVideo.addEventListener('ended', () => {
-        globalVideo.currentTime = 3.0;
-        globalVideo.play();
+        if (globalVideo.duration > 3.1) {
+          globalVideo.currentTime = 3.0;
+        } else {
+          globalVideo.currentTime = 0;
+        }
+        globalVideo.play().catch(() => {});
       });
     }
   } catch (e) {
@@ -1410,41 +1431,200 @@ function openPortfolioLanguageModal() {
   if (modal) modal.classList.remove('hidden');
 }
 
-const initGithubDirectory = () => {
-  const tabs = document.querySelectorAll('#githubFilterTabs .repo-filter-btn');
-  const searchInput = document.getElementById('githubRepoSearch');
-  const cards = document.querySelectorAll('#githubReposGrid .github-repo-card');
-  if (!tabs.length || !cards.length) return;
+// ===== FLAGSHIP PROJECT ALBUM DETAIL MODAL =====
+let activeProjectId = null;
 
-  let activeCat = 'all';
+function pauseAllShowcaseVideos() {
+  document.querySelectorAll('#project-detail-modal video').forEach((v) => {
+    try { v.pause(); } catch (e) {}
+  });
+}
 
-  const applyFilter = () => {
-    const q = (searchInput ? searchInput.value : '').trim().toLowerCase();
-    cards.forEach(card => {
-      const catMatch = activeCat === 'all' || card.getAttribute('data-category') === activeCat;
-      const text = (card.getAttribute('data-search') || '') + ' ' + card.textContent.toLowerCase();
-      const qMatch = !q || text.includes(q);
-      card.classList.toggle('repo-hidden', !(catMatch && qMatch));
-    });
-  };
+function getOrderedProjectIds() {
+  return Array.from(document.querySelectorAll('#project-detail-modal .project-section-block[id]')).map((el) => el.id);
+}
 
-  tabs.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabs.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeCat = btn.getAttribute('data-filter') || 'all';
-      applyFilter();
-    });
+function openProjectAlbumModal(projectId) {
+  const modal = document.getElementById('project-detail-modal');
+  const contentWrap = document.getElementById('projectDetailModalContent');
+  const counterEl = document.getElementById('projectModalCounter');
+  if (!modal) return;
+
+  const ids = getOrderedProjectIds();
+  if (!ids.length) return;
+  const targetId = ids.includes(projectId) ? projectId : ids[0];
+
+  pauseAllShowcaseVideos();
+
+  document.querySelectorAll('#project-detail-modal .project-section-block').forEach((art) => {
+    art.classList.toggle('is-active-project', art.id === targetId);
   });
 
-  if (searchInput) {
-    searchInput.addEventListener('input', applyFilter);
+  activeProjectId = targetId;
+  const idx = ids.indexOf(targetId);
+  if (counterEl) counterEl.textContent = `${idx + 1} / ${ids.length}`;
+
+  if (contentWrap) contentWrap.scrollTop = 0;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProjectAlbumModal() {
+  const modal = document.getElementById('project-detail-modal');
+  if (!modal) return;
+  pauseAllShowcaseVideos();
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  const lightbox = document.getElementById('cert-lightbox');
+  if (!lightbox || !lightbox.classList.contains('show')) {
+    document.body.style.overflow = '';
   }
+}
+
+function navigateProjectAlbum(delta) {
+  const ids = getOrderedProjectIds();
+  if (!ids.length) return;
+  const curIdx = activeProjectId ? ids.indexOf(activeProjectId) : 0;
+  const nextIdx = (curIdx + delta + ids.length) % ids.length;
+  openProjectAlbumModal(ids[nextIdx]);
+}
+
+const initProjectAlbumCards = () => {
+  document.querySelectorAll('#projectsAlbumGrid .project-album-card[data-project-target]').forEach((card) => {
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openProjectAlbumModal(card.getAttribute('data-project-target'));
+      }
+    });
+  });
 };
 
-// Re-initialize directory filter cleanly on load
-if (document.readyState === 'loading') {
-  window.addEventListener('DOMContentLoaded', initGithubDirectory);
-} else {
+// ===== OTHER GITHUB PROJECTS HORIZONTAL CAROUSEL =====
+const initGithubDirectory = () => {
+  const track = document.getElementById('githubReposGrid');
+  const prevBtn = document.getElementById('repoPrevBtn');
+  const nextBtn = document.getElementById('repoNextBtn');
+  const dotsWrap = document.getElementById('repoCarouselDots');
+  if (!track) return;
+
+  const cards = Array.from(track.querySelectorAll('.github-repo-card'));
+  if (!cards.length) return;
+
+  const getStepWidth = () => {
+    const first = cards[0];
+    if (!first) return Math.max(320, track.clientWidth * 0.8);
+    const style = window.getComputedStyle(track);
+    const gap = parseFloat(style.columnGap || style.gap || '24') || 24;
+    return first.getBoundingClientRect().width + gap;
+  };
+
+  // Build pagination dots
+  if (dotsWrap) {
+    dotsWrap.innerHTML = '';
+    cards.forEach((card, idx) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'repo-carousel-dot' + (idx === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `Project ${idx + 1}`);
+      dot.addEventListener('click', () => {
+        track.scrollTo({ left: idx * getStepWidth(), behavior: 'smooth' });
+      });
+      dotsWrap.appendChild(dot);
+    });
+  }
+
+  const updateControls = () => {
+    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
+    const isScrollable = maxScroll > 8;
+
+    if (prevBtn) {
+      prevBtn.style.display = isScrollable ? 'flex' : 'none';
+      const atStart = track.scrollLeft <= 10;
+      prevBtn.style.opacity = atStart ? '0.25' : '1';
+      prevBtn.style.pointerEvents = atStart ? 'none' : 'auto';
+    }
+    if (nextBtn) {
+      nextBtn.style.display = isScrollable ? 'flex' : 'none';
+      const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
+      nextBtn.style.opacity = atEnd ? '0.25' : '1';
+      nextBtn.style.pointerEvents = atEnd ? 'none' : 'auto';
+    }
+
+    if (dotsWrap) {
+      const step = getStepWidth();
+      const activeIdx = maxScroll > 0 && track.scrollLeft + track.clientWidth >= track.scrollWidth - 12
+        ? cards.length - 1
+        : Math.min(cards.length - 1, Math.max(0, Math.round(track.scrollLeft / step)));
+      dotsWrap.querySelectorAll('.repo-carousel-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === activeIdx);
+      });
+    }
+  };
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      track.scrollBy({ left: -getStepWidth(), behavior: 'smooth' });
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      track.scrollBy({ left: getStepWidth(), behavior: 'smooth' });
+    });
+  }
+
+  // Smooth mouse drag-to-scroll on desktop
+  let isDragging = false;
+  let startX = 0;
+  let startScrollLeft = 0;
+  let movedDistance = 0;
+
+  track.addEventListener('mousedown', (e) => {
+    if (e.target.closest('a, button')) return;
+    isDragging = true;
+    movedDistance = 0;
+    startX = e.pageX - track.offsetLeft;
+    startScrollLeft = track.scrollLeft;
+    track.classList.add('is-dragging');
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const x = e.pageX - track.offsetLeft;
+    const walk = (x - startX) * 1.25;
+    movedDistance = Math.abs(x - startX);
+    track.scrollLeft = startScrollLeft - walk;
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    track.classList.remove('is-dragging');
+  });
+
+  track.addEventListener('click', (e) => {
+    if (movedDistance > 6) {
+      e.preventDefault();
+      e.stopPropagation();
+      movedDistance = 0;
+    }
+  }, true);
+
+  track.addEventListener('scroll', updateControls, { passive: true });
+  window.addEventListener('resize', updateControls);
+  setTimeout(updateControls, 300);
+  setTimeout(updateControls, 1200);
+};
+
+// Re-initialize album cards & GitHub carousel cleanly on load
+const initPortfolioInteractive = () => {
+  initProjectAlbumCards();
   initGithubDirectory();
+};
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initPortfolioInteractive);
+} else {
+  initPortfolioInteractive();
 }

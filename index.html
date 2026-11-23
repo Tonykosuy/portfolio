@@ -9,11 +9,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20261122">
+  <link rel="stylesheet" href="style.css?v=20261123">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Three.js & Physics for Lanyard -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,38 +25,81 @@
   </style>
 
   <script>
-    // ===== IMMEDIATE LOADER LOGIC (Never blocks scroll on heavy media) =====
+    // ===== REAL FULL-MEDIA PRELOADER (Waits for Background Video, Product Videos & All Images) =====
     (function() {
-      const init = () => {
+      const startPreloader = () => {
         const loaderWrapper = document.getElementById('loader-wrapper');
         const loaderText = document.getElementById('loader-text-el');
+        const loaderStatus = document.getElementById('loader-status-el');
         const progressBar = document.getElementById('loader-progressBar');
         const percentageText = document.getElementById('loader-perc');
 
         if (!loaderWrapper) {
-          requestAnimationFrame(init);
+          requestAnimationFrame(startPreloader);
           return;
         }
 
         const greetings = [
-          "Hello", "Bonjour", "Hola", "こんにちは", "안녕하세요", 
-          "你好", "Hallo", "Ciao", "Привет", "Olá", 
+          "Hello", "Bonjour", "Hola", "こんにちは", "안녕하세요",
+          "你好", "Hallo", "Ciao", "Привет", "Olá",
           "नमस्ते", "مرحبًا", "Merhaba", "สวัสดี", "Xin chào"
         ];
-
         let currentGreetingIndex = 0;
-        let progress = 0;
         let isCompleted = false;
+        let maxPercent = 0;
+        const savedLang = localStorage.getItem('portfolio_lang') || 'vi';
+
+        const greetingTimer = setInterval(() => {
+          currentGreetingIndex = (currentGreetingIndex + 1) % greetings.length;
+          if (loaderText && !isCompleted) {
+            loaderText.textContent = greetings[currentGreetingIndex];
+          }
+        }, 320);
+
+        const updateUI = (items) => {
+          if (isCompleted) return;
+          let totalWeight = 0;
+          let loadedWeight = 0;
+          let doneCount = 0;
+          for (const item of items) {
+            totalWeight += item.weight;
+            loadedWeight += item.weight * item.fraction;
+            if (item.done) doneCount++;
+          }
+          const rawPct = totalWeight > 0 ? Math.floor((loadedWeight / totalWeight) * 100) : 100;
+          maxPercent = Math.max(maxPercent, Math.min(99, rawPct));
+          if (progressBar) progressBar.style.width = maxPercent + '%';
+          if (percentageText) percentageText.textContent = String(maxPercent);
+          if (loaderStatus) {
+            loaderStatus.textContent = savedLang === 'en'
+              ? `Loading background video & project media (${doneCount}/${items.length})...`
+              : `Đang tải video nền & tài nguyên dự án (${doneCount}/${items.length})...`;
+          }
+        };
 
         const completeLoading = () => {
           if (isCompleted) return;
           isCompleted = true;
+          clearInterval(greetingTimer);
+          maxPercent = 100;
           if (progressBar) progressBar.style.width = '100%';
           if (percentageText) percentageText.textContent = '100';
-          const savedLang = localStorage.getItem('portfolio_lang') || 'vi';
-          if (loaderText) loaderText.textContent = savedLang === 'en' ? "Welcome" : "Xin chào";
+          const langNow = localStorage.getItem('portfolio_lang') || 'vi';
+          if (loaderText) loaderText.textContent = langNow === 'en' ? "Welcome" : "Xin chào";
+          if (loaderStatus) {
+            loaderStatus.textContent = langNow === 'en' ? "All media ready!" : "Đã tải xong toàn bộ tài nguyên!";
+          }
 
-          // Trigger background music as soon as loader finishes
+          const globalVideo = document.getElementById('globalVideo');
+          if (globalVideo) {
+            try {
+              if (globalVideo.readyState >= 1 && globalVideo.duration > 3.1 && globalVideo.currentTime < 2.9) {
+                globalVideo.currentTime = 3.0;
+              }
+              globalVideo.play().catch(() => {});
+            } catch (e) {}
+          }
+
           const audioEl = document.getElementById('bg-music');
           if (audioEl && audioEl.paused) {
             audioEl.play().then(() => {
@@ -74,39 +114,227 @@
             loaderWrapper.classList.add('loaded');
             document.body.classList.remove('loading');
             document.body.style.overflow = '';
-            setTimeout(() => { loaderWrapper.remove(); }, 1000);
-          }, 350);
+            window.__PORTFOLIO_MEDIA_READY__ = true;
+            setTimeout(() => { loaderWrapper.remove(); }, 850);
+          }, 320);
         };
 
-        const textInterval = setInterval(() => {
-          if (currentGreetingIndex < greetings.length - 1) {
-            currentGreetingIndex++;
-            if (loaderText) loaderText.textContent = greetings[currentGreetingIndex];
-          } else {
-            clearInterval(textInterval);
-            completeLoading();
+        const fetchMediaAsBlobUrl = async (url, onProgress) => {
+          const controller = new AbortController();
+          let stallTimer = setTimeout(() => controller.abort(), 30000);
+          const resetStall = () => {
+            clearTimeout(stallTimer);
+            stallTimer = setTimeout(() => controller.abort(), 30000);
+          };
+          try {
+            const res = await fetch(url, { signal: controller.signal });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const totalBytes = parseInt(res.headers.get('content-length') || '0', 10);
+            if (!res.body || !res.body.getReader) {
+              const blob = await res.blob();
+              clearTimeout(stallTimer);
+              onProgress(1);
+              return URL.createObjectURL(blob);
+            }
+            const reader = res.body.getReader();
+            const chunks = [];
+            let received = 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              resetStall();
+              if (done) break;
+              chunks.push(value);
+              received += value.byteLength;
+              if (totalBytes > 0) {
+                onProgress(Math.min(0.95, received / totalBytes));
+              } else {
+                onProgress(Math.min(0.9, received / (received + 250000)));
+              }
+            }
+            clearTimeout(stallTimer);
+            const contentType = res.headers.get('content-type') || '';
+            const blob = new Blob(chunks, contentType ? { type: contentType } : undefined);
+            onProgress(0.96);
+            return URL.createObjectURL(blob);
+          } catch (err) {
+            clearTimeout(stallTimer);
+            throw err;
           }
-        }, 150);
+        };
 
-        const progressInterval = setInterval(() => {
-          progress += 2.2;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(progressInterval);
-            completeLoading();
+        const preloadImage = (url, item, notify) => new Promise((resolve) => {
+          const img = new Image();
+          let settled = false;
+          const finish = () => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            item.fraction = 1;
+            item.done = true;
+            notify();
+            resolve();
+          };
+          const timer = setTimeout(finish, 20000);
+          img.onload = () => {
+            if (typeof img.decode === 'function') {
+              img.decode().catch(() => {}).finally(finish);
+            } else {
+              finish();
+            }
+          };
+          img.onerror = finish;
+          img.src = url;
+        });
+
+        const preloadMediaEl = async (mediaEl, srcUrl, item, notify, isGlobalBg) => {
+          const markDone = () => {
+            if (item.done) return;
+            item.fraction = 1;
+            item.done = true;
+            notify();
+          };
+
+          const waitReadyOnElement = (timeoutMs) => new Promise((resolve) => {
+            if (mediaEl.readyState >= 3) {
+              resolve();
+              return;
+            }
+            let settled = false;
+            const done = () => {
+              if (settled) return;
+              settled = true;
+              clearTimeout(t);
+              mediaEl.removeEventListener('canplaythrough', done);
+              mediaEl.removeEventListener('canplay', done);
+              mediaEl.removeEventListener('loadeddata', done);
+              mediaEl.removeEventListener('error', done);
+              resolve();
+            };
+            const t = setTimeout(done, timeoutMs);
+            mediaEl.addEventListener('canplaythrough', done, { once: true });
+            mediaEl.addEventListener('canplay', done, { once: true });
+            mediaEl.addEventListener('loadeddata', done, { once: true });
+            mediaEl.addEventListener('error', done, { once: true });
+          });
+
+          try {
+            const blobUrl = await fetchMediaAsBlobUrl(srcUrl, (frac) => {
+              item.fraction = Math.max(item.fraction, frac);
+              notify();
+            });
+            mediaEl.querySelectorAll('source').forEach((s) => s.remove());
+            mediaEl.preload = 'auto';
+            mediaEl.src = blobUrl;
+            if (isGlobalBg) {
+              mediaEl.addEventListener('loadedmetadata', () => {
+                if (mediaEl.duration > 3.1) {
+                  try { mediaEl.currentTime = 3.0; } catch (e) {}
+                }
+              }, { once: true });
+            }
+            mediaEl.load();
+            await waitReadyOnElement(isGlobalBg ? 6000 : 2500);
+            markDone();
+          } catch (err) {
+            // Fallback for file:// or network restrictions
+            mediaEl.preload = 'auto';
+            try { mediaEl.load(); } catch (e) {}
+            await waitReadyOnElement(20000);
+            markDone();
           }
-          if (progressBar) progressBar.style.width = progress + '%';
-          if (percentageText) percentageText.textContent = Math.floor(progress);
-        }, 45);
+        };
 
-        // Safety fallback: always unlock scroll after 3 seconds max
-        setTimeout(completeLoading, 3000);
+        const runAssetQueue = async () => {
+          const tasks = [];
+          const items = [];
+          const seenImg = new Set();
+
+          // 1. Background video first (highest priority)
+          const globalVideo = document.getElementById('globalVideo');
+          if (globalVideo) {
+            const srcNode = globalVideo.querySelector('source');
+            const bgSrc = globalVideo.getAttribute('src') || (srcNode && srcNode.getAttribute('src'));
+            if (bgSrc) {
+              const item = { weight: 14, fraction: 0, done: false };
+              items.push(item);
+              tasks.push({ priority: 0, run: () => preloadMediaEl(globalVideo, bgSrc, item, () => updateUI(items), true) });
+            }
+          }
+
+          // 2. All product/showcase videos
+          document.querySelectorAll('.projects-showcase video, #portfolio video').forEach((vid) => {
+            if (vid.id === 'globalVideo') return;
+            const srcNode = vid.querySelector('source');
+            const vSrc = vid.getAttribute('src') || (srcNode && srcNode.getAttribute('src'));
+            if (vSrc) {
+              const item = { weight: 12, fraction: 0, done: false };
+              items.push(item);
+              tasks.push({ priority: 1, run: () => preloadMediaEl(vid, vSrc, item, () => updateUI(items), false) });
+            }
+          });
+
+          // 3. Background music
+          const bgMusic = document.getElementById('bg-music');
+          if (bgMusic) {
+            const mSrc = bgMusic.getAttribute('src');
+            if (mSrc) {
+              const item = { weight: 5, fraction: 0, done: false };
+              items.push(item);
+              tasks.push({ priority: 2, run: () => preloadMediaEl(bgMusic, mSrc, item, () => updateUI(items), false) });
+            }
+          }
+
+          // 4. All images in DOM + both bilingual CV assets
+          const imgUrls = [];
+          document.querySelectorAll('img').forEach((img) => {
+            const s = (img.getAttribute('src') || '').trim();
+            if (s && !seenImg.has(s)) {
+              seenImg.add(s);
+              imgUrls.push(s);
+            }
+          });
+          ['asset/cv/CV_VIE.png', 'asset/cv/CV_ENG.png'].forEach((cvSrc) => {
+            if (!seenImg.has(cvSrc)) {
+              seenImg.add(cvSrc);
+              imgUrls.push(cvSrc);
+            }
+          });
+
+          imgUrls.forEach((url) => {
+            const item = { weight: 1, fraction: 0, done: false };
+            items.push(item);
+            tasks.push({ priority: 3, run: () => preloadImage(url, item, () => updateUI(items)) });
+          });
+
+          if (tasks.length === 0) {
+            completeLoading();
+            return;
+          }
+
+          tasks.sort((a, b) => a.priority - b.priority);
+          updateUI(items);
+
+          // Concurrent worker pool (max 6 active downloads so localhost & GitHub Pages stay smooth)
+          let cursor = 0;
+          const workerCount = Math.min(6, tasks.length);
+          const workers = Array.from({ length: workerCount }, async () => {
+            while (cursor < tasks.length) {
+              const nextTask = tasks[cursor++];
+              await nextTask.run();
+            }
+          });
+
+          await Promise.all(workers);
+          completeLoading();
+        };
+
+        runAssetQueue();
       };
-      
+
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', startPreloader);
       } else {
-        init();
+        startPreloader();
       }
     })();
   </script>
@@ -117,6 +345,7 @@
   <div id="loader-wrapper">
     <div class="loader-content">
       <div id="loader-text-el">Hello</div>
+      <div id="loader-status-el">Đang tải video nền &amp; tài nguyên dự án...</div>
     </div>
     <div class="loader-progress-bar-container">
       <div id="loader-progressBar"></div>
@@ -160,7 +389,7 @@
 
   <!-- Global Video Background -->
   <div class="fixed-bg">
-    <video autoplay muted playsinline id="globalVideo" controlsList="nodownload noplaybackrate" disablePictureInPicture oncontextmenu="return false;">
+    <video autoplay muted playsinline preload="auto" id="globalVideo" controlsList="nodownload noplaybackrate" disablePictureInPicture oncontextmenu="return false;">
       <source src="asset/pixverse-bg.mp4" type="video/mp4">
     </video>
     <div class="bg-overlay"></div>
@@ -558,10 +787,463 @@
         <h2 class="section-title split-text" data-i18n-split="portfolio.title"><span class="accent">DỰ ÁN</span> TIÊU BIỂU</h2>
       </div>
 
+      <!-- ===== 9 FLAGSHIP PROJECT ALBUMS (Click to open Video & Photo Detail Modal) ===== -->
+      <div class="projects-album-grid reveal" id="projectsAlbumGrid">
+
+        <article class="project-album-card spotlight-card" data-project-target="project-stock-vn100" onclick="openProjectAlbumModal('project-stock-vn100')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/stock-action-plan.png" alt="VN100 Automated Stock Screener" loading="eager">
+            <span class="album-num-pill">01</span>
+            <span class="album-media-pill" data-i18n-html="portfolio.photoAlbumBadge"><i class="fa-solid fa-images"></i> Album Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-expand"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="pStock.title">1. Dự án Phân tích &amp; Sàng lọc Cổ phiếu Tự động (VN100)</h3>
+          </div>
+        </article>
+
+        <article class="project-album-card spotlight-card" data-project-target="project-hurea-hub" onclick="openProjectAlbumModal('project-hurea-hub')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/04_trang_chu_dashboard.png" alt="HuReA Hub Club HR ERP" loading="eager">
+            <span class="album-num-pill">02</span>
+            <span class="album-media-pill" data-i18n-html="portfolio.photoAlbumBadge"><i class="fa-solid fa-images"></i> Album Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-expand"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="pHurea.title">2. Dự án Hệ thống Quản trị Nhân sự CLB (HuReA Hub)</h3>
+          </div>
+        </article>
+
+        <article class="project-album-card spotlight-card" data-project-target="project-openmontage" onclick="openProjectAlbumModal('project-openmontage')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/openmontage-studio-main.png" alt="OpenMontage AI Video Studio" loading="eager">
+            <span class="album-num-pill">03</span>
+            <span class="album-media-pill is-video" data-i18n-html="portfolio.videoAlbumBadge"><i class="fa-solid fa-film"></i> Video + Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-circle-play"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="pOM.title">3. Dự án Xưởng Phim AI &amp; Pipeline Remotion (OpenMontage)</h3>
+          </div>
+        </article>
+
+        <article class="project-album-card spotlight-card" data-project-target="project-mike-editor" onclick="openProjectAlbumModal('project-mike-editor')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/mike-editor-hyperframes-1.png" alt="Mike Editor Pro 4.0 & Hyperframes" loading="eager">
+            <span class="album-num-pill">04</span>
+            <span class="album-media-pill is-video" data-i18n-html="portfolio.videoAlbumBadge"><i class="fa-solid fa-film"></i> Video + Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-circle-play"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="pMike.title">4. Dự án Trình Dựng Video Đa Lớp (Mike Editor Pro 4.0 &amp; Hyperframes)</h3>
+          </div>
+        </article>
+
+        <article class="project-album-card spotlight-card" data-project-target="project-job-hub" onclick="openProjectAlbumModal('project-job-hub')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/jobhub-cv-qr-preview.png" alt="Semi-Auto AI Job Hub" loading="eager">
+            <span class="album-num-pill">05</span>
+            <span class="album-media-pill" data-i18n-html="portfolio.photoAlbumBadge"><i class="fa-solid fa-images"></i> Album Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-expand"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="pJob.title">5. Dự án Semi-Auto AI Job Hub &amp; Bộ Lọc career-ops ATS</h3>
+          </div>
+        </article>
+
+        <article class="project-album-card spotlight-card" data-project-target="project-haylentieng" onclick="openProjectAlbumModal('project-haylentieng')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/haylentieng-thumb.png" alt="AI 5D Matching Engine haylentieng.vn" loading="eager">
+            <span class="album-num-pill">06</span>
+            <span class="album-media-pill" data-i18n-html="portfolio.photoAlbumBadge"><i class="fa-solid fa-images"></i> Album Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-expand"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="pHL.title">6. Dự án Đối Chiếu AI 5D Tìm Người Thân Thất Lạc (haylentieng.vn)</h3>
+          </div>
+        </article>
+
+        <article class="project-album-card spotlight-card" data-project-target="project-avi-health" onclick="openProjectAlbumModal('project-avi-health')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/avi-health-thumb.png" alt="AVI Health Bot & AI Food Freshness" loading="eager">
+            <span class="album-num-pill">07</span>
+            <span class="album-media-pill is-video" data-i18n-html="portfolio.videoAlbumBadge"><i class="fa-solid fa-film"></i> Video + Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-circle-play"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="p1.title">7. Dự án Bot phân tích sức khỏe (AVI Health)</h3>
+          </div>
+        </article>
+
+        <article class="project-album-card spotlight-card" data-project-target="project-avi-ship" onclick="openProjectAlbumModal('project-avi-ship')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/avi-ship-thumb.png" alt="AVI Ship Express E-Commerce" loading="eager">
+            <span class="album-num-pill">08</span>
+            <span class="album-media-pill is-video" data-i18n-html="portfolio.videoAlbumBadge"><i class="fa-solid fa-film"></i> Video + Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-circle-play"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="p2.title">8. Dự án Sàn thương mại rau củ (AVI Ship)</h3>
+          </div>
+        </article>
+
+        <article class="project-album-card spotlight-card" data-project-target="project-vndeer" onclick="openProjectAlbumModal('project-vndeer')" tabindex="0" role="button">
+          <div class="spotlight-glow"></div>
+          <div class="album-card-thumb">
+            <img src="asset/projects/vndeer-thumb.png" alt="VNDEER Disaster Relief Coordination" loading="eager">
+            <span class="album-num-pill">09</span>
+            <span class="album-media-pill is-video" data-i18n-html="portfolio.videoAlbumBadge"><i class="fa-solid fa-film"></i> Video + Ảnh</span>
+            <div class="album-hover-overlay">
+              <i class="fa-solid fa-circle-play"></i>
+              <span data-i18n="portfolio.viewAlbumDetail">Xem chi tiết Video &amp; Ảnh</span>
+            </div>
+          </div>
+          <div class="album-card-body">
+            <h3 class="album-card-title" data-i18n="p3.title">9. Dự án VNDEER (Hệ thống điều phối cứu trợ thiên tai)</h3>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- ===== OTHER GITHUB PROJECTS CAROUSEL ===== -->
+      <div class="github-directory-section reveal" id="all-github-projects">
+        <div class="section-header" style="margin-top: 5rem; margin-bottom: 2rem;">
+          <div class="section-label" data-i18n="githubDir.label">✦ Các Dự Án Mã Nguồn Mở Khác ✦</div>
+          <h2 class="section-title split-text" data-i18n-split="githubDir.title"><span class="accent">DỰ ÁN GITHUB</span> KHÁC</h2>
+          <p class="github-dir-subtitle" data-i18n-html="githubDir.subtitle">
+            Các repository tiêu biểu khác ngoài 9 album dự án trọng điểm phía trên tại <strong>github.com/Tonykosuy</strong> — kéo ngang hoặc bấm mũi tên để xem chi tiết &amp; chạy thử trực tiếp.
+          </p>
+        </div>
+
+        <div class="cert-carousel-container repo-carousel-container" id="repoCarouselContainer">
+          <button type="button" class="cert-carousel-btn repo-carousel-btn prev-btn" id="repoPrevBtn" aria-label="Previous projects">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+
+          <div class="cert-carousel-track repo-carousel-track" id="githubReposGrid">
+          <div class="github-repo-card spotlight-card" data-category="web" data-search="stamplocker html5 canvas • google apps script • camera stamplocker — sổ tay sưu tầm tem ảnh kỷ niệm (coffee journal) stamplocker — coffee journal edition interactive photo stamp book ứng dụng web chụp ảnh kỷ niệm với khung tem đục lỗ cổ điển svg, đếm ngược đóng dấu, hiệu ứng âm thanh màn trập, ghi chú tay và lưu trữ vào sổ lưu bút qua google apps script. interactive vintage camera web app that frames photos inside perforated svg postage stamps with slam animation, handwritten captions, and cloud scrapbook sync via google apps script.">
+            <div class="spotlight-glow"></div>
+            <div class="repo-card-inner">
+              <div class="repo-card-top">
+                <span class="repo-index">#01</span>
+                <span class="repo-cat-badge" data-i18n="githubDir.cat.web">WEB</span>
+              </div>
+              <div class="repo-title-row">
+                <div class="repo-icon-box"><i class="fa-solid fa-stamp"></i></div>
+                <div>
+                  <h4 data-i18n="repo.stamplocker.title">StampLocker — Sổ Tay Sưu Tầm Tem Ảnh Kỷ Niệm (Coffee Journal)</h4>
+                  <span class="repo-slug">Tonykosuy/stamplocker</span>
+                </div>
+              </div>
+              <p class="repo-desc" data-i18n="repo.stamplocker.desc">Ứng dụng web chụp ảnh kỷ niệm với khung tem đục lỗ cổ điển SVG, đếm ngược đóng dấu, hiệu ứng âm thanh màn trập, ghi chú tay và lưu trữ vào sổ lưu bút qua Google Apps Script.</p>
+              <div class="repo-highlights" data-i18n="repo.stamplocker.feat">Khung Tem SVG Đục lỗ • Zoom 1x/2x • Sổ Lưu bút Đám mây</div>
+              <div class="repo-stack-row">
+                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> HTML5 Canvas • Google Apps Script • Camera</span>
+              </div>
+              <div class="repo-card-actions">
+                <a href="https://github.com/Tonykosuy/stamplocker" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
+                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
+                </a>
+                <a href="https://tonykosuy.github.io/stamplocker/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
+              </div>
+            </div>
+          </div>
+          <div class="github-repo-card spotlight-card" data-category="web" data-search="nguoi-yeu-vu-tru three.js • webgl • hand tracking aether particles v7.0 — không gian hạt vũ trụ 3d tương tác cử chỉ aether particles v7.0 // neon cosmos — gesture-controlled 3d space trải nghiệm nghệ thuật 3d webgl điều khiển hàng nghìn hạt ánh sáng thành hệ mặt trời, trái đất, sao hỏa, sao mộc và trái tim bằng cử chỉ tay qua webcam kết hợp âm nhạc. interactive three.js webgl cosmos morphing thousands of neon particles into solar system, earth, mars, jupiter, and heart formations via webcam hand-gesture controls & music.">
+            <div class="spotlight-glow"></div>
+            <div class="repo-card-inner">
+              <div class="repo-card-top">
+                <span class="repo-index">#02</span>
+                <span class="repo-cat-badge" data-i18n="githubDir.cat.web">WEB</span>
+              </div>
+              <div class="repo-title-row">
+                <div class="repo-icon-box"><i class="fa-solid fa-meteor"></i></div>
+                <div>
+                  <h4 data-i18n="repo.Nguoi_yeu_vu_tru.title">Aether Particles v7.0 — Không Gian Hạt Vũ Trụ 3D Tương Tác Cử Chỉ</h4>
+                  <span class="repo-slug">Tonykosuy/Nguoi-yeu-vu-tru</span>
+                </div>
+              </div>
+              <p class="repo-desc" data-i18n="repo.Nguoi_yeu_vu_tru.desc">Trải nghiệm nghệ thuật 3D WebGL điều khiển hàng nghìn hạt ánh sáng thành Hệ Mặt Trời, Trái Đất, Sao Hỏa, Sao Mộc và Trái Tim bằng cử chỉ tay qua webcam kết hợp âm nhạc.</p>
+              <div class="repo-highlights" data-i18n="repo.Nguoi_yeu_vu_tru.feat">Điều khiển Cử chỉ 2 Tay • Đồ họa Neon 3D • Nhạc nền & Thiệp Valentine</div>
+              <div class="repo-stack-row">
+                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Three.js • WebGL • Hand Tracking</span>
+              </div>
+              <div class="repo-card-actions">
+                <a href="https://github.com/Tonykosuy/Nguoi-yeu-vu-tru" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
+                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
+                </a>
+                <a href="https://tonykosuy.github.io/Nguoi-yeu-vu-tru/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
+              </div>
+            </div>
+          </div>
+          <div class="github-repo-card spotlight-card" data-category="social" data-search="taphuandangoai_t12_2025 html5 • css3 • responsive portal tập huấn dã ngoại t12/2025 — cổng thông tin ban tổ chức travel outdoor training camp dec/2025 — travel organizing committee portal trang thông tin chính thức giới thiệu mục tiêu gắn kết, cơ cấu core team và mô tả chi tiết nhiệm vụ 6 team chuyên môn (truyền thông, sân khấu, địa điểm, setup, hậu cần, hoạt náo). official onboarding portal detailing the dec/2025 outdoor training camp vision, core team leadership, and job descriptions across all 6 organizing committee sub-teams.">
+            <div class="spotlight-glow"></div>
+            <div class="repo-card-inner">
+              <div class="repo-card-top">
+                <span class="repo-index">#03</span>
+                <span class="repo-cat-badge" data-i18n="githubDir.cat.social">SOCIAL</span>
+              </div>
+              <div class="repo-title-row">
+                <div class="repo-icon-box"><i class="fa-solid fa-campground"></i></div>
+                <div>
+                  <h4 data-i18n="repo.Taphuandangoai_T12_2025.title">Tập Huấn Dã Ngoại T12/2025 — Cổng Thông Tin Ban Tổ Chức Travel</h4>
+                  <span class="repo-slug">Tonykosuy/Taphuandangoai_T12_2025</span>
+                </div>
+              </div>
+              <p class="repo-desc" data-i18n="repo.Taphuandangoai_T12_2025.desc">Trang thông tin chính thức giới thiệu mục tiêu gắn kết, cơ cấu Core Team và mô tả chi tiết nhiệm vụ 6 team chuyên môn (Truyền thông, Sân khấu, Địa điểm, Setup, Hậu cần, Hoạt náo).</p>
+              <div class="repo-highlights" data-i18n="repo.Taphuandangoai_T12_2025.feat">Cơ cấu 6 Team BTC • Hướng dẫn CTV/TV • Giao diện Responsive</div>
+              <div class="repo-stack-row">
+                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> HTML5 • CSS3 • Responsive Portal</span>
+              </div>
+              <div class="repo-card-actions">
+                <a href="https://github.com/Tonykosuy/Taphuandangoai_T12_2025" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
+                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
+                </a>
+                <a href="https://tonykosuy.github.io/Taphuandangoai_T12_2025/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
+              </div>
+            </div>
+          </div>
+          <div class="github-repo-card spotlight-card" data-category="hr" data-search="nusa-valo-watcher powershell • windows mutex • vbscript nusa valorant watcher — tự động điều phối tiến trình windows nusa valorant watcher — automated powershell mutex process watcher tiện ích powershell chạy ngầm không cửa sổ dùng khóa mutex hệ thống để theo dõi tiến trình valorant mỗi 3 giây, tự động dừng nusa khi vào game và khởi chạy lại sau khi thoát. silent background powershell utility guarded by a windows mutex lock that polls valorant every 3 seconds, pausing nusa during gameplay and relaunching it cleanly on exit.">
+            <div class="spotlight-glow"></div>
+            <div class="repo-card-inner">
+              <div class="repo-card-top">
+                <span class="repo-index">#04</span>
+                <span class="repo-cat-badge" data-i18n="githubDir.cat.hr">HR</span>
+              </div>
+              <div class="repo-title-row">
+                <div class="repo-icon-box"><i class="fa-solid fa-terminal"></i></div>
+                <div>
+                  <h4 data-i18n="repo.nusa_valo_watcher.title">Nusa Valorant Watcher — Tự Động Điều Phối Tiến Trình Windows</h4>
+                  <span class="repo-slug">Tonykosuy/nusa-valo-watcher</span>
+                </div>
+              </div>
+              <p class="repo-desc" data-i18n="repo.nusa_valo_watcher.desc">Tiện ích PowerShell chạy ngầm không cửa sổ dùng khóa Mutex hệ thống để theo dõi tiến trình Valorant mỗi 3 giây, tự động dừng Nusa khi vào game và khởi chạy lại sau khi thoát.</p>
+              <div class="repo-highlights" data-i18n="repo.nusa_valo_watcher.feat">Khóa Mutex 1 Instance • Chạy ẩn VBScript • Tự khởi chạy lại Nusa</div>
+              <div class="repo-stack-row">
+                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> PowerShell • Windows Mutex • VBScript</span>
+              </div>
+              <div class="repo-card-actions">
+                <a href="https://github.com/Tonykosuy/nusa-valo-watcher" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
+                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
+                </a>
+                <a href="https://tonykosuy.github.io/nusa-valo-watcher/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
+              </div>
+            </div>
+          </div>
+          <div class="github-repo-card spotlight-card" data-category="web" data-search="portfolio three.js • cannon-es • gsap • bilingual personal portfolio — website hồ sơ nghệ thuật van gogh & 21 dự án personal portfolio — interactive van gogh 3d & 21-project showcase website portfolio cá nhân chủ đề đêm đầy sao (van gogh) tích hợp hiệu ứng starlight particles, gsap anti-gravity, cv song ngữ phóng to, chứng chỉ và danh mục toàn bộ 21 dự án github. starry night themed personal portfolio featuring three.js/gsap anti-gravity tickets, bilingual vi/en switcher & welcome prompt, zoomable cvs, certificates, and all 21 github repos.">
+            <div class="spotlight-glow"></div>
+            <div class="repo-card-inner">
+              <div class="repo-card-top">
+                <span class="repo-index">#05</span>
+                <span class="repo-cat-badge" data-i18n="githubDir.cat.web">WEB</span>
+              </div>
+              <div class="repo-title-row">
+                <div class="repo-icon-box"><i class="fa-solid fa-palette"></i></div>
+                <div>
+                  <h4 data-i18n="repo.portfolio.title">Personal Portfolio — Website Hồ Sơ Nghệ Thuật Van Gogh</h4>
+                  <span class="repo-slug">Tonykosuy/portfolio</span>
+                </div>
+              </div>
+              <p class="repo-desc" data-i18n="repo.portfolio.desc">Website portfolio cá nhân chủ đề Đêm Đầy Sao (Van Gogh) tích hợp hiệu ứng Starlight Particles, GSAP Anti-Gravity, CV song ngữ phóng to, chứng chỉ và album 9 dự án tiêu biểu.</p>
+              <div class="repo-highlights" data-i18n="repo.portfolio.feat">Song ngữ Việt/Anh • Lightbox CV/Chứng chỉ • Album 9 Dự Án • Bảo vệ Media</div>
+              <div class="repo-stack-row">
+                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> HTML5 • CSS3 • GSAP • Bilingual</span>
+              </div>
+              <div class="repo-card-actions">
+                <a href="https://github.com/Tonykosuy/portfolio" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
+                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
+                </a>
+                <a href="https://tonykosuy.github.io/portfolio/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <button type="button" class="cert-carousel-btn repo-carousel-btn next-btn" id="repoNextBtn" aria-label="Next projects">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="repo-carousel-dots" id="repoCarouselDots"></div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid reveal" style="margin-top: 5rem; grid-column: 1 / -1; width: 100%;">
+
+        <!-- Stat Card 1 -->
+        <div class="stat-card spotlight-card floating">
+          <div class="stat-ornament stat-ornament-tl"></div>
+          <div class="stat-ornament stat-ornament-tr"></div>
+          <div class="stat-ornament stat-ornament-bl"></div>
+          <div class="stat-ornament stat-ornament-br"></div>
+          <div class="spotlight-glow"></div>
+          <div class="stat-icon"><i class="fa-solid fa-code"></i></div>
+          <div class="stat-number" data-count="21">0</div>
+          <div class="stat-label" data-i18n="portfolio.stat1">Dự án sáng lập</div>
+        </div>
+
+        <!-- Stat Card 2 -->
+        <div class="stat-card spotlight-card floating">
+          <div class="stat-ornament stat-ornament-tl"></div>
+          <div class="stat-ornament stat-ornament-tr"></div>
+          <div class="stat-ornament stat-ornament-bl"></div>
+          <div class="stat-ornament stat-ornament-br"></div>
+          <div class="spotlight-glow"></div>
+          <div class="stat-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+          <div class="stat-number" data-count="30">0</div>
+          <div class="stat-label" data-i18n="portfolio.stat2">Quỹ gây dựng (Tr.đ)</div>
+        </div>
+
+        <!-- Stat Card 3 -->
+        <div class="stat-card spotlight-card floating">
+          <div class="stat-ornament stat-ornament-tl"></div>
+          <div class="stat-ornament stat-ornament-tr"></div>
+          <div class="stat-ornament stat-ornament-bl"></div>
+          <div class="stat-ornament stat-ornament-br"></div>
+          <div class="spotlight-glow"></div>
+          <div class="stat-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+          <div class="stat-number" data-count="51">0</div>
+          <div class="stat-label" data-i18n="portfolio.stat3">Khóa K51 UEH</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MASONRY GALLERY — React Bits Style ===== -->
+  <section class="gallery-masonry-section has-bg glass-section" id="gallery-masonry" style="display: none;">
+    <div class="gallery-container">
+      <div class="section-header reveal">
+        <div class="section-label" data-i18n="gallery.label">Ảnh nghệ thuật</div>
+        <h2 class="section-title split-text" data-i18n-split="gallery.title"><span class="accent">MASONRY</span> GALLERY</h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT — Van Gogh Background ===== -->
+  <section class="contact has-bg glass-section" id="contact">
+    <div class="contact-container">
+      <div class="section-header reveal">
+        <div class="section-label" data-i18n="contact.label">Kết nối</div>
+        <h2 class="section-title split-text" data-i18n-split="contact.title"><span class="accent">LIÊN HỆ</span> VỚI TÔI</h2>
+      </div>
+      <div class="contact-grid reveal">
+        <div class="contact-item spotlight-card">
+          <div class="spotlight-glow"></div>
+          <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+          <div class="contact-info">
+            <h4 data-i18n="contact.emailLabel">Email</h4>
+            <p>pn852007@gmail.com</p>
+          </div>
+        </div>
+        <div class="contact-item spotlight-card">
+          <div class="spotlight-glow"></div>
+          <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+          <div class="contact-info">
+            <h4 data-i18n="contact.phoneLabel">Điện thoại</h4>
+            <p>0342 381 843</p>
+          </div>
+        </div>
+        <div class="contact-item spotlight-card">
+          <div class="spotlight-glow"></div>
+          <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+          <div class="contact-info">
+            <h4 data-i18n="contact.addressLabel">Địa chỉ</h4>
+            <p data-i18n="contact.addressValue">Đại học Kinh tế TP.HCM (UEH), TP. Hồ Chí Minh</p>
+          </div>
+        </div>
+        <div class="contact-item spotlight-card">
+          <div class="spotlight-glow"></div>
+          <div class="contact-icon"><i class="fa-brands fa-github"></i></div>
+          <div class="contact-info">
+            <h4 data-i18n="contact.githubLabel">GitHub</h4>
+            <p><a href="https://github.com/Tonykosuy" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;position:relative;z-index:5;">github.com/Tonykosuy</a></p>
+          </div>
+        </div>
+      </div>
+      <form class="contact-form reveal spotlight-card"
+        onsubmit="handleContactSubmit(event)">
+        <div class="spotlight-glow"></div>
+        <div style="position: relative; z-index: 1;">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name" data-i18n="contact.formName">Họ và tên</label>
+              <input type="text" id="name" data-i18n-placeholder="contact.formNamePlaceholder" placeholder="Nhập họ tên..." required>
+            </div>
+            <div class="form-group">
+              <label for="email" data-i18n="contact.formEmail">Email</label>
+              <input type="email" id="email" data-i18n-placeholder="contact.formEmailPlaceholder" placeholder="Nhập email..." required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="subject" data-i18n="contact.formSubject">Chủ đề</label>
+            <input type="text" id="subject" data-i18n-placeholder="contact.formSubjectPlaceholder" placeholder="Nhập chủ đề...">
+          </div>
+          <div class="form-group">
+            <label for="message" data-i18n="contact.formMessage">Tin nhắn</label>
+            <textarea id="message" data-i18n-placeholder="contact.formMessagePlaceholder" placeholder="Nhập tin nhắn..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-filled" style="width:100%;justify-content:center" data-i18n-html="contact.formSubmit">
+            <i class="fa-solid fa-paper-plane"></i> Gửi Tin Nhắn
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== PROJECT DETAIL ALBUM MODAL (Placed at body root so backdrop-filter never traps it!) ===== -->
+  <div class="project-detail-modal" id="project-detail-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="project-detail-backdrop" onclick="closeProjectAlbumModal()"></div>
+    <div class="project-detail-dialog">
+      <div class="project-detail-topbar">
+        <div class="project-detail-nav">
+          <button type="button" class="project-modal-btn" id="projectModalPrevBtn" onclick="navigateProjectAlbum(-1)">
+            <i class="fa-solid fa-chevron-left"></i> <span data-i18n="portfolio.prevProject">Dự án trước</span>
+          </button>
+          <span class="project-modal-counter" id="projectModalCounter">1 / 9</span>
+          <button type="button" class="project-modal-btn" id="projectModalNextBtn" onclick="navigateProjectAlbum(1)">
+            <span data-i18n="portfolio.nextProject">Dự án tiếp</span> <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+        <button type="button" class="project-modal-btn project-modal-close" id="projectModalCloseBtn" onclick="closeProjectAlbumModal()">
+          <i class="fa-solid fa-xmark"></i> <span data-i18n="lightbox.close">Đóng</span>
+        </button>
+      </div>
+      <div class="project-detail-modal-content" id="projectDetailModalContent">
       <div class="projects-showcase">
 
         <!-- ================= SECTION 1: STOCK TECHNICAL ANALYSIS & AUTO SCREENER (VN100) ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-stock-vn100">
+        <article class="project-section-block spotlight-card" id="project-stock-vn100">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -685,7 +1367,7 @@
         </article>
 
         <!-- ================= SECTION 2: HUREA HUB ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-hurea-hub">
+        <article class="project-section-block spotlight-card" id="project-hurea-hub">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -820,7 +1502,7 @@
 
 
         <!-- ================= SECTION 3: OPENMONTAGE ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-openmontage">
+        <article class="project-section-block spotlight-card" id="project-openmontage">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -875,7 +1557,7 @@
 
             <div class="project-media-panel">
               <div class="project-video-wrap">
-                <video controls preload="none" poster="asset/projects/openmontage-studio-main.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                <video controls preload="auto" poster="asset/projects/openmontage-studio-main.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
                   <source src="asset/projects/openmontage-demo.mp4" type="video/mp4">
                 </video>
                 <div class="project-video-caption">
@@ -927,7 +1609,7 @@
         </article>
 
         <!-- ================= SECTION 4: MIKE EDITOR & VIDEO WORKSPACE ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-mike-editor">
+        <article class="project-section-block spotlight-card" id="project-mike-editor">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -984,7 +1666,7 @@
 
             <div class="project-media-panel">
               <div class="project-video-wrap">
-                <video controls preload="none" poster="asset/projects/mike-editor-hyperframes-1.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                <video controls preload="auto" poster="asset/projects/mike-editor-hyperframes-1.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
                   <source src="asset/projects/mike-editor-hcm-intro.mp4" type="video/mp4">
                 </video>
                 <div class="project-video-caption">
@@ -1036,7 +1718,7 @@
         </article>
 
         <!-- ================= SECTION 5: SEMI-AUTO AI JOB HUB ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-job-hub">
+        <article class="project-section-block spotlight-card" id="project-job-hub">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -1102,7 +1784,7 @@
         </article>
 
         <!-- ================= SECTION 6: HAYLENTIENG AI 5D MATCHER ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-haylentieng">
+        <article class="project-section-block spotlight-card" id="project-haylentieng">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -1147,6 +1829,13 @@
             </div>
 
             <div class="project-media-panel">
+              <div class="project-video-wrap zoomable-card">
+                <img src="asset/projects/haylentieng-thumb.png" alt="AI 5D Matching Engine haylentieng.vn" class="project-hero-img zoomable-img">
+                <div class="project-video-caption">
+                  <i class="fa-solid fa-people-arrows"></i>
+                  <span data-i18n="pHL.heroCaption">Tổng quan Hệ thống Đối chiếu AI 5D haylentieng.vn (Nhấn để phóng to)</span>
+                </div>
+              </div>
               <div class="hl-highlight-card">
                 <div class="hl-metrics-grid">
                   <div class="hl-metric">
@@ -1178,7 +1867,7 @@
         </article>
 
         <!-- ================= SECTION 7: AVI HEALTH ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-avi-health">
+        <article class="project-section-block spotlight-card" id="project-avi-health">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -1239,7 +1928,7 @@
             <!-- Right: Video Demo + AI Visual Gallery -->
             <div class="project-media-panel">
               <div class="project-video-wrap">
-                <video controls preload="none" poster="asset/projects/avi-health-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                <video controls preload="auto" poster="asset/projects/avi-health-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
                   <source src="asset/projects/avi-health-demo.mp4" type="video/mp4">
                 </video>
                 <div class="project-video-caption">
@@ -1267,7 +1956,7 @@
         </article>
 
         <!-- ================= SECTION 4: AVI SHIP ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-avi-ship">
+        <article class="project-section-block spotlight-card" id="project-avi-ship">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -1326,7 +2015,7 @@
             <!-- Right: Video Demo + AI Visual Gallery -->
             <div class="project-media-panel">
               <div class="project-video-wrap">
-                <video controls preload="none" poster="asset/projects/avi-ship-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                <video controls preload="auto" poster="asset/projects/avi-ship-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
                   <source src="asset/projects/avi-ship-demo.mp4" type="video/mp4">
                 </video>
                 <div class="project-video-caption">
@@ -1354,7 +2043,7 @@
         </article>
 
         <!-- ================= SECTION 5: VNDEER ================= -->
-        <article class="project-section-block reveal spotlight-card" id="project-vndeer">
+        <article class="project-section-block spotlight-card" id="project-vndeer">
           <div class="spotlight-glow"></div>
           <div class="project-header-bar">
             <div class="project-header-titles">
@@ -1426,7 +2115,7 @@
             <!-- Right: Dual Video Demos + AI Visual Gallery -->
             <div class="project-media-panel">
               <div class="project-video-wrap">
-                <video controls preload="none" poster="asset/projects/vndeer-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                <video controls preload="auto" poster="asset/projects/vndeer-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
                   <source src="asset/projects/vndeer-showcase.mp4" type="video/mp4">
                 </video>
                 <div class="project-video-caption">
@@ -1436,7 +2125,7 @@
               </div>
 
               <div class="project-video-wrap">
-                <video controls preload="none" poster="asset/projects/vndeer-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                <video controls preload="auto" poster="asset/projects/vndeer-thumb.png" controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
                   <source src="asset/projects/vndeer-trailer.mp4" type="video/mp4">
                 </video>
                 <div class="project-video-caption">
@@ -1464,728 +2153,9 @@
         </article>
 
       </div>
-
-
-      <!-- ===== COMPLETE ALL 21 GITHUB PROJECTS DIRECTORY ===== -->
-      <div class="github-directory-section reveal" id="all-github-projects">
-        <div class="section-header" style="margin-top: 5rem; margin-bottom: 2rem;">
-          <div class="section-label" data-i18n="githubDir.label">✦ Toàn Bộ Hệ Sinh Thái Mã Nguồn Mở ✦</div>
-          <h2 class="section-title split-text" data-i18n-split="githubDir.title"><span class="accent">TẤT CẢ 21 DỰ ÁN</span> GITHUB</h2>
-          <p class="github-dir-subtitle" data-i18n="githubDir.subtitle">
-            Tổng hợp đầy đủ 21 repository trên GitHub <strong>github.com/Tonykosuy</strong> kèm mô tả chi tiết, giao diện song ngữ Việt/Anh khi truy cập và đường dẫn trực tiếp tới mã nguồn &amp; web chạy thực tế.
-          </p>
-        </div>
-
-        <div class="github-filter-bar">
-          <div class="github-filter-tabs" id="githubFilterTabs">
-            <button type="button" class="repo-filter-btn active" data-filter="all" data-i18n="githubDir.filterAll">Tất cả (21)</button>
-            <button type="button" class="repo-filter-btn" data-filter="fintech" data-i18n="githubDir.filterFintech">FinTech &amp; Quant (4)</button>
-            <button type="button" class="repo-filter-btn" data-filter="ai_video" data-i18n="githubDir.filterAiVideo">AI &amp; Video Studio (4)</button>
-            <button type="button" class="repo-filter-btn" data-filter="hr" data-i18n="githubDir.filterHr">HR &amp; Automation (4)</button>
-            <button type="button" class="repo-filter-btn" data-filter="social" data-i18n="githubDir.filterSocial">Cộng đồng &amp; Sức khỏe (6)</button>
-            <button type="button" class="repo-filter-btn" data-filter="web" data-i18n="githubDir.filterWeb">Web &amp; Sáng tạo (3)</button>
-          </div>
-          <div class="github-search-wrap">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="githubRepoSearch" data-i18n-placeholder="githubDir.searchPlaceholder" placeholder="Tìm dự án, công nghệ hoặc mô tả...">
-          </div>
-        </div>
-
-        <div class="github-repos-grid" id="githubReposGrid">
-          <div class="github-repo-card spotlight-card" data-category="fintech" data-search="broker javascript • charting • technical analysis broker — sàng lọc & phân tích kỹ thuật vn100 broker — vn100 auto-screener & technical analysis hệ thống web tự động quét ~130 mã cổ phiếu vn100 qua 8 chiến lược định lượng, tính win rate, tỷ lệ risk:reward và đề xuất kế hoạch giải ngân 3 đợt theo thời gian thực. automated web platform scanning ~130 vn100 stocks across 8 quantitative strategies, calculating win rate, r:r ratios, and generating 3-tranche trading plans in real time.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#01</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.fintech">FINTECH</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-chart-line"></i></div>
-                <div>
-                  <h4 data-i18n="repo.broker.title">Broker — Sàng Lọc & Phân Tích Kỹ Thuật VN100</h4>
-                  <span class="repo-slug">Tonykosuy/broker</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.broker.desc">Hệ thống web tự động quét ~130 mã cổ phiếu VN100 qua 8 chiến lược định lượng, tính Win Rate, tỷ lệ Risk:Reward và đề xuất kế hoạch giải ngân 3 đợt theo thời gian thực.</p>
-              <div class="repo-highlights" data-i18n="repo.broker.feat">Auto-Screener • Backtest 8 chỉ báo • Kế hoạch TP/SL • Tin tức FireAnt</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> JavaScript • Charting • Technical Analysis</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/broker" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/broker/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="fintech" data-search="chungkhoan javascript • apexcharts • sheetjs chứng khoán — truy xuất dữ liệu & xuất excel 100 mã vn100 chungkhoan — vn100 historical scraper & 100-sheet excel exporter công cụ truy xuất lịch sử giá cổ phiếu vn100/vn30, tra cứu hồ sơ doanh nghiệp hose/hnx/upcom, vẽ biểu đồ nến kỹ thuật và xuất báo cáo excel 100 sheet theo nhóm ngành. extracts vn100/vn30 historical ohlcv data, looks up company fundamentals, renders candlestick charts, and exports 100-sheet excel workbooks grouped by sector.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#02</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.fintech">FINTECH</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-file-excel"></i></div>
-                <div>
-                  <h4 data-i18n="repo.chungkhoan.title">Chứng Khoán — Truy Xuất Dữ Liệu & Xuất Excel 100 Mã VN100</h4>
-                  <span class="repo-slug">Tonykosuy/chungkhoan</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.chungkhoan.desc">Công cụ truy xuất lịch sử giá cổ phiếu VN100/VN30, tra cứu hồ sơ doanh nghiệp HOSE/HNX/UPCOM, vẽ biểu đồ nến kỹ thuật và xuất báo cáo Excel 100 sheet theo nhóm ngành.</p>
-              <div class="repo-highlights" data-i18n="repo.chungkhoan.feat">Xuất 100 Sheet Excel • Lịch sử giá OHLCV • Tra cứu Doanh nghiệp • PTKT</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> JavaScript • ApexCharts • SheetJS</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/chungkhoan" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/chungkhoan/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="fintech" data-search="vn100-linear-quant python • ols regression • quartiles vn100 linear quant — hồi quy tuyến tính & tứ phân vị ghép nhóm vn100 linear quant — ols regression & grouped quartile engine hệ thống phân tích định lượng cổ phiếu vn100 kết hợp hồi quy tuyến tính ols (y = ax + b), tứ phân vị mẫu số liệu ghép nhóm (q1, q2, q3, iqr), nhận diện s/r và điểm mua/bán đa nhân tố. quantitative analyzer combining ols linear regression (y = ax + b), grouped data quartiles (q1, q2, q3, iqr), automated s/r zones, and 6-factor bayesian/kelly trade signals.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#03</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.fintech">FINTECH</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-square-root-variable"></i></div>
-                <div>
-                  <h4 data-i18n="repo.vn100_linear_quant.title">VN100 Linear Quant — Hồi Quy Tuyến Tính & Tứ Phân Vị Ghép Nhóm</h4>
-                  <span class="repo-slug">Tonykosuy/vn100-linear-quant</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.vn100_linear_quant.desc">Hệ thống phân tích định lượng cổ phiếu VN100 kết hợp hồi quy tuyến tính OLS (y = ax + b), tứ phân vị mẫu số liệu ghép nhóm (Q1, Q2, Q3, IQR), nhận diện S/R và điểm mua/bán đa nhân tố.</p>
-              <div class="repo-highlights" data-i18n="repo.vn100_linear_quant.feat">OLS Đa Khung (1W–1Y) • Phân vị Ghép nhóm • Pivot S/R • SSI/DNSE Live</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Python • OLS Regression • Quartiles</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/vn100-linear-quant" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/vn100-linear-quant/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="fintech" data-search="vn-stock-widget python • tkinter • pastel ui • whisper vn stock widget — tiện ích desktop chứng khoán & năng suất pastel vn stock widget — pastel desktop stock tracker & productivity suite bộ 6 widget desktop windows nổi (always-on-top) theo dõi vn-index, danh mục p&l thực tế, speech-to-text whisper offline, báo thức pomodoro, quản lý công việc và kệ lưu trữ nhanh. always-on-top windows desktop productivity suite featuring live vn-index & p&l tracking, offline whisper speech-to-text, pomodoro alarms, task tracker, and quick-copy shelf.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#04</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.fintech">FINTECH</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-desktop"></i></div>
-                <div>
-                  <h4 data-i18n="repo.vn_stock_widget.title">VN Stock Widget — Tiện Ích Desktop Chứng Khoán & Năng Suất Pastel</h4>
-                  <span class="repo-slug">Tonykosuy/vn-stock-widget</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.vn_stock_widget.desc">Bộ 6 widget desktop Windows nổi (Always-on-top) theo dõi VN-INDEX, danh mục P&L thực tế, Speech-to-Text Whisper offline, báo thức Pomodoro, quản lý công việc và kệ lưu trữ nhanh.</p>
-              <div class="repo-highlights" data-i18n="repo.vn_stock_widget.feat">Bảng giá VCI/SSI 5s • Danh mục P&L • Whisper Offline • Tự ẩn khi chơi game</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Python • Tkinter • Pastel UI • Whisper</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/vn-stock-widget" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/vn-stock-widget/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="hr" data-search="hurea_hub vercel cloud • apps script • erp hurea hub — nền tảng quản trị nhân sự & erp clb (vercel) hurea hub — cloud club hr & 360° performance erp (vercel) cổng triển khai chính thức của hệ thống quản trị nội bộ clb nhân sự hurea (ueh) cho 113+ thành viên: quản lý đa nhiệm kỳ, điều phối dự án, chấm điểm 360° và xuất pdf/excel hàng loạt. production deployment of hurea club's internal hr erp (113+ members): multi-term directories, project & pl tracking, 4-pillar 360° evaluation, and batch pdf/excel exports.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#05</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.hr">HR</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-users-gear"></i></div>
-                <div>
-                  <h4 data-i18n="repo.hurea_hub.title">HuReA Hub — Nền Tảng Quản Trị Nhân Sự & ERP CLB (Vercel)</h4>
-                  <span class="repo-slug">Tonykosuy/hurea_hub</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.hurea_hub.desc">Cổng triển khai chính thức của hệ thống quản trị nội bộ CLB Nhân sự HuReA (UEH) cho 113+ thành viên: quản lý đa nhiệm kỳ, điều phối dự án, chấm điểm 360° và xuất PDF/Excel hàng loạt.</p>
-              <div class="repo-highlights" data-i18n="repo.hurea_hub.feat">113+ Thành viên • Đánh giá 360° • Xếp lịch họp • Xuất PDF/Excel hàng loạt</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Vercel Cloud • Apps Script • ERP</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/hurea_hub" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://hurea-hub.vercel.app" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="hr" data-search="hurea html/css/js • google sheets api hurea dashboard — hệ thống điều hành thành viên & minh chứng hurea dashboard — member operations, evidence & confession hub phiên bản web dashboard đầy đủ của clb hurea với đăng nhập pin 6 số, paste nhập nhanh từ excel, hòm góp ý & confession ẩn danh, photobooth và lưu trữ minh chứng chuẩn hóa. full web dashboard featuring 6-digit pin auth, rapid excel paste import, anonymous feedback & confession box, built-in photobooth, and centralized evidence storage.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#06</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.hr">HR</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-id-card-clip"></i></div>
-                <div>
-                  <h4 data-i18n="repo.hurea.title">HuReA Dashboard — Hệ Thống Điều Hành Thành Viên & Minh Chứng</h4>
-                  <span class="repo-slug">Tonykosuy/hurea</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.hurea.desc">Phiên bản web dashboard đầy đủ của CLB HuReA với đăng nhập PIN 6 số, paste nhập nhanh từ Excel, hòm Góp ý & Confession ẩn danh, Photobooth và lưu trữ minh chứng chuẩn hóa.</p>
-              <div class="repo-highlights" data-i18n="repo.hurea.feat">Đăng nhập PIN • Nhập nhanh Excel • Confession ẩn danh • Photobooth</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> HTML/CSS/JS • Google Sheets API</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/hurea" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/hurea/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="ai_video" data-search="openmontage python • remotion • piper tts • whisper openmontage — xưởng phim ai đa tác tử & remotion pipeline openmontage — multi-agent ai video production studio & remotion studio sản xuất video ai chạy local tích hợp 750+ phong cách dàn dựng, 37+ giọng đọc piper/edge tts, 40+ font chữ tiếng việt, faster-whisper stt và pipeline kết xuất remotion mp4. local ai video production suite combining 750+ visual playbooks, 37+ piper/edge voices, 40+ fonts, faster-whisper speech-to-subtitle, and automated remotion mp4 rendering.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#07</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.ai_video">AI_VIDEO</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-clapperboard"></i></div>
-                <div>
-                  <h4 data-i18n="repo.OpenMontage.title">OpenMontage — Xưởng Phim AI Đa Tác Tử & Remotion Pipeline</h4>
-                  <span class="repo-slug">Tonykosuy/OpenMontage</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.OpenMontage.desc">Studio sản xuất video AI chạy local tích hợp 750+ phong cách dàn dựng, 37+ giọng đọc Piper/Edge TTS, 40+ font chữ tiếng Việt, Faster-Whisper STT và pipeline kết xuất Remotion MP4.</p>
-              <div class="repo-highlights" data-i18n="repo.OpenMontage.feat">750+ Styles • 37+ Giọng đọc • Faster-Whisper STT • Ink Theater & Backlot</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Python • Remotion • Piper TTS • Whisper</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/OpenMontage" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/OpenMontage/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="ai_video" data-search="mike-editor node.js • html5 canvas • web audio • ffmpeg mike editor pro 4.0 — trình dựng video timeline đa lớp nền web mike editor pro 4.0 — web multi-track timeline video editor trình chỉnh sửa video đa lớp trực quan trên trình duyệt với 200 bộ màu lut điện ảnh, 200 vfx filters, 200 graphic cta, 200 kiểu chữ/font, 20 chuyển cảnh, keyframes và kho 200 sfx/bgm. browser-based multi-track video editor packing 200 cinema luts, 200 vfx filters, 200 motion graphics, 200 fonts & text styles, 20 transitions, keyframes, and 200 synthesized sfx/bgm.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#08</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.ai_video">AI_VIDEO</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-film"></i></div>
-                <div>
-                  <h4 data-i18n="repo.mike_editor.title">Mike Editor Pro 4.0 — Trình Dựng Video Timeline Đa Lớp Nền Web</h4>
-                  <span class="repo-slug">Tonykosuy/mike-editor</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.mike_editor.desc">Trình chỉnh sửa video đa lớp trực quan trên trình duyệt với 200 bộ màu LUT điện ảnh, 200 VFX filters, 200 graphic CTA, 200 kiểu chữ/font, 20 chuyển cảnh, keyframes và kho 200 SFX/BGM.</p>
-              <div class="repo-highlights" data-i18n="repo.mike_editor.feat">1.200+ Presets (LUT/VFX/Font/SFX) • Keyframe • Safe Zone • FFmpeg MP4</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Node.js • HTML5 Canvas • Web Audio • FFmpeg</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/mike-editor" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/mike-editor/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="ai_video" data-search="video-editor hyperframes • remotion • node.js video editor workspace — dựng video bằng code (hyperframes) video editor workspace — code-driven motion & hyperframes không gian tích hợp các dự án dựng phim bằng code gồm mike editor pro 4.0, video giới thiệu tp.hcm dựng bằng hyperframes và template timeline render tự động. unified motion engineering workspace housing mike editor pro 4.0, the hyperframes-powered ho chi minh city intro film, and frame-accurate html/css/js video templates.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#09</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.ai_video">AI_VIDEO</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                <div>
-                  <h4 data-i18n="repo.video_editor.title">Video Editor Workspace — Dựng Video Bằng Code (Hyperframes)</h4>
-                  <span class="repo-slug">Tonykosuy/video-editor</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.video_editor.desc">Không gian tích hợp các dự án dựng phim bằng code gồm Mike Editor Pro 4.0, video giới thiệu TP.HCM dựng bằng Hyperframes và template timeline render tự động.</p>
-              <div class="repo-highlights" data-i18n="repo.video_editor.feat">HCM Intro Hyperframes • Mike Editor Pro • Render Frame-Accurate</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Hyperframes • Remotion • Node.js</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/video-editor" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/video-editor/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="hr" data-search="semi-auto-job-hub javascript • python smtp • career-ops ats semi-auto ai job hub — phân tích ats & gửi cv hàng loạt semi-auto ai job hub — ats matcher, anti-ai guard & bulk mailer hệ thống thu thập việc làm đa nguồn, chấm điểm fit 5 chiều & đảo ngược ats (career-ops), tùy biến cv gắn qr portfolio, khử dấu hiệu ai writing và gửi gmail smtp kèm cv pdf. multi-source job hub with 5d fit scoring & reverse ats analysis, qr-linked cv tailoring, wp:aisigns anti-ai prose guard, and gmail web / smtp bulk pdf cv dispatching.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#10</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.hr">HR</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-briefcase"></i></div>
-                <div>
-                  <h4 data-i18n="repo.semi_auto_job_hub.title">Semi-Auto AI Job Hub — Phân Tích ATS & Gửi CV Hàng Loạt</h4>
-                  <span class="repo-slug">Tonykosuy/semi-auto-job-hub</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.semi_auto_job_hub.desc">Hệ thống thu thập việc làm đa nguồn, chấm điểm Fit 5 chiều & đảo ngược ATS (career-ops), tùy biến CV gắn QR Portfolio, khử dấu hiệu AI Writing và gửi Gmail SMTP kèm CV PDF.</p>
-              <div class="repo-highlights" data-i18n="repo.semi_auto_job_hub.feat">Chấm điểm ATS 5D • Khử AI Writing • Kèm CV PDF (VI/EN) • Gmail Bulk</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> JavaScript • Python SMTP • career-ops ATS</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/semi-auto-job-hub" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/semi-auto-job-hub/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="ai_video" data-search="haylentieng-scraper python • ai 5d matching • tailwind ui haylentieng.vn — ai 5d matching tìm người thân thất lạc haylentieng.vn — ai 5d missing relatives matching dashboard dự án phi lợi nhuận thu thập ~13.000 hồ sơ từ haylentieng.vn (1.083 trang), sử dụng bộ đối chiếu ai 5 chiều & phễu 4 tầng kết hợp lịch sử địa danh hành chính việt nam để gợi ý đoàn tụ. non-profit initiative scraping ~13,000 missing-person profiles from haylentieng.vn with a 5d ai matching engine, 4-stage funnel, and vietnam historical province mapping.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#11</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.ai_video">AI_VIDEO</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-magnifying-glass-location"></i></div>
-                <div>
-                  <h4 data-i18n="repo.haylentieng_scraper.title">Haylentieng.vn — AI 5D Matching Tìm Người Thân Thất Lạc</h4>
-                  <span class="repo-slug">Tonykosuy/haylentieng-scraper</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.haylentieng_scraper.desc">Dự án phi lợi nhuận thu thập ~13.000 hồ sơ từ haylentieng.vn (1.083 trang), sử dụng bộ đối chiếu AI 5 chiều & phễu 4 tầng kết hợp lịch sử địa danh hành chính Việt Nam để gợi ý đoàn tụ.</p>
-              <div class="repo-highlights" data-i18n="repo.haylentieng_scraper.feat">13.000+ Hồ sơ • AI 5D Matching • Lịch sử Địa danh VN • Dashboard Trực quan</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Python • AI 5D Matching • Tailwind UI</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/haylentieng-scraper" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/haylentieng-scraper/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="social" data-search="vndeer leaflet gis • vneid qr • google sheets vndeer — hệ sinh thái điều phối cứu trợ thiên tai toàn diện vndeer — full disaster relief & emergency coordination suite hệ thống đầy đủ gồm 7 trang web điều phối cứu trợ: bản đồ sos tuyến đầu, tra cứu hộ dân ngập lụt, định danh qr vneid, hồ sơ y tế ice, cảnh báo xả lũ thủy điện và đồng bộ google sheets. complete 7-module disaster relief platform: frontline sos gis map, flood household lookup, vneid qr verification, ice medical profiles, dam discharge alerts, and google sheets sync.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#12</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.social">SOCIAL</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-shield-halved"></i></div>
-                <div>
-                  <h4 data-i18n="repo.VNDeer.title">VNDeer — Hệ Sinh Thái Điều Phối Cứu Trợ Thiên Tai Toàn Diện</h4>
-                  <span class="repo-slug">Tonykosuy/VNDeer</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.VNDeer.desc">Hệ thống đầy đủ gồm 7 trang web điều phối cứu trợ: Bản đồ SOS tuyến đầu, tra cứu hộ dân ngập lụt, định danh QR VNeID, hồ sơ y tế ICE, cảnh báo xả lũ thủy điện và đồng bộ Google Sheets.</p>
-              <div class="repo-highlights" data-i18n="repo.VNDeer.feat">7 Trang Chức năng • Bản đồ SOS GIS • Quét QR VNeID • Hồ sơ Y tế ICE</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Leaflet GIS • VNeID QR • Google Sheets</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/VNDeer" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/VNDeer/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="social" data-search="vn-deer html5 • leaflet • html5-qrcode vn-deer — cổng điều phối & xác minh cứu trợ (bản tiếng việt) vn-deer — emergency relief verification portal (vn edition) ứng dụng web di động tối ưu cho tình nguyện viên và người dân vùng lũ gửi tín hiệu sos kèm tọa độ gps, báo triệu chứng y tế khẩn cấp và xác thực nhận hàng qua mã qr vneid. mobile-first disaster response web app enabling flood victims and volunteers to broadcast gps sos alerts, report medical symptoms, and verify relief aid via vneid qr codes.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#13</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.social">SOCIAL</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-map-location-dot"></i></div>
-                <div>
-                  <h4 data-i18n="repo.VN_DEER.title">VN-DEER — Cổng Điều Phối & Xác Minh Cứu Trợ (Bản Tiếng Việt)</h4>
-                  <span class="repo-slug">Tonykosuy/VN-DEER</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.VN_DEER.desc">Ứng dụng web di động tối ưu cho tình nguyện viên và người dân vùng lũ gửi tín hiệu SOS kèm tọa độ GPS, báo triệu chứng y tế khẩn cấp và xác thực nhận hàng qua mã QR VNeID.</p>
-              <div class="repo-highlights" data-i18n="repo.VN_DEER.feat">Gửi SOS & GPS • Xác thực CCCD/VNeID • Cảnh báo Đập Thủy điện</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> HTML5 • Leaflet • html5-qrcode</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/VN-DEER" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/VN-DEER/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="social" data-search="vn-deer_en html5 • leaflet • international relief vn-deer en — hệ thống điều phối cứu trợ khẩn cấp (bản quốc tế) vn-deer en — emergency relief verification system (global edition) phiên bản quốc tế hóa song ngữ của hệ thống vn-deer dành cho các tổ chức cứu trợ, tình nguyện viên quốc tế và trình diễn cuộc thi đổi mới sáng tạo xã hội (yai / sv.startup). international bilingual edition of vn-deer built for global ngos, international rescue coordinators, and social-impact pitch competitions (yai / sv.startup).">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#14</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.social">SOCIAL</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-earth-asia"></i></div>
-                <div>
-                  <h4 data-i18n="repo.VN_DEER_EN.title">VN-DEER EN — Hệ Thống Điều Phối Cứu Trợ Khẩn Cấp (Bản Quốc Tế)</h4>
-                  <span class="repo-slug">Tonykosuy/VN-DEER_EN</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.VN_DEER_EN.desc">Phiên bản quốc tế hóa song ngữ của hệ thống VN-DEER dành cho các tổ chức cứu trợ, tình nguyện viên quốc tế và trình diễn cuộc thi đổi mới sáng tạo xã hội (YAI / SV.STARTUP).</p>
-              <div class="repo-highlights" data-i18n="repo.VN_DEER_EN.feat">Chuẩn Quốc tế • Định danh VNeID • Hồ sơ Y tế ICE • Bản đồ Tuyến đầu</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> HTML5 • Leaflet • International Relief</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/VN-DEER_EN" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/VN-DEER_EN/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="social" data-search="foodcheck teachable machine • tensorflow.js • webrtc foodcheck (avi health) — ai quét & kiểm định độ tươi thực phẩm foodcheck (avi health) — ai food freshness & camera inspector ứng dụng web kết hợp cẩm nang nhận biết độ tươi thịt/cá/trái cây, mẹo bảo quản chuẩn nhiệt độ và mô hình thị giác máy tính teachable machine quét độ tươi thực phẩm qua camera. web app combining fresh meat/fish/produce inspection guides, cold-storage best practices, and a live teachable machine computer-vision camera scanner for food freshness.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#15</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.social">SOCIAL</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-apple-whole"></i></div>
-                <div>
-                  <h4 data-i18n="repo.foodcheck.title">FoodCheck (AVI Health) — AI Quét & Kiểm Định Độ Tươi Thực Phẩm</h4>
-                  <span class="repo-slug">Tonykosuy/foodcheck</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.foodcheck.desc">Ứng dụng web kết hợp cẩm nang nhận biết độ tươi thịt/cá/trái cây, mẹo bảo quản chuẩn nhiệt độ và mô hình Thị giác máy tính Teachable Machine quét độ tươi thực phẩm qua camera.</p>
-              <div class="repo-highlights" data-i18n="repo.foodcheck.feat">Camera AI Quét Thực phẩm • Hướng dẫn Bảo quản • Cảnh báo Ôi thiu</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Teachable Machine • TensorFlow.js • WebRTC</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/foodcheck" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/foodcheck/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="social" data-search="foodchecker computer vision • webrtc • html5 foodchecker — mô-đun kiểm tra an toàn & độ tươi thực phẩm foodchecker — smart produce quality & safety inspector phiên bản web chuyên biệt phục vụ kiểm định chất lượng nông sản & thực phẩm tươi sống trực tiếp trên trình duyệt điện thoại, tích hợp chuyển đổi camera trước/sau tức thì. dedicated mobile-browser food safety inspection module supporting instant front/rear camera switching, visual freshness checklists, and teachable machine classification.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#16</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.social">SOCIAL</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-microscope"></i></div>
-                <div>
-                  <h4 data-i18n="repo.foodchecker.title">FoodChecker — Mô-đun Kiểm Tra An Toàn & Độ Tươi Thực Phẩm</h4>
-                  <span class="repo-slug">Tonykosuy/foodchecker</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.foodchecker.desc">Phiên bản web chuyên biệt phục vụ kiểm định chất lượng nông sản & thực phẩm tươi sống trực tiếp trên trình duyệt điện thoại, tích hợp chuyển đổi camera trước/sau tức thì.</p>
-              <div class="repo-highlights" data-i18n="repo.foodchecker.feat">Chuyển Camera Trước/Sau • Nhận diện AI Thời gian thực • Mobile-First</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Computer Vision • WebRTC • HTML5</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/foodchecker" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/foodchecker/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="web" data-search="stamplocker html5 canvas • google apps script • camera stamplocker — sổ tay sưu tầm tem ảnh kỷ niệm (coffee journal) stamplocker — coffee journal edition interactive photo stamp book ứng dụng web chụp ảnh kỷ niệm với khung tem đục lỗ cổ điển svg, đếm ngược đóng dấu, hiệu ứng âm thanh màn trập, ghi chú tay và lưu trữ vào sổ lưu bút qua google apps script. interactive vintage camera web app that frames photos inside perforated svg postage stamps with slam animation, handwritten captions, and cloud scrapbook sync via google apps script.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#17</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.web">WEB</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-stamp"></i></div>
-                <div>
-                  <h4 data-i18n="repo.stamplocker.title">StampLocker — Sổ Tay Sưu Tầm Tem Ảnh Kỷ Niệm (Coffee Journal)</h4>
-                  <span class="repo-slug">Tonykosuy/stamplocker</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.stamplocker.desc">Ứng dụng web chụp ảnh kỷ niệm với khung tem đục lỗ cổ điển SVG, đếm ngược đóng dấu, hiệu ứng âm thanh màn trập, ghi chú tay và lưu trữ vào sổ lưu bút qua Google Apps Script.</p>
-              <div class="repo-highlights" data-i18n="repo.stamplocker.feat">Khung Tem SVG Đục lỗ • Zoom 1x/2x • Sổ Lưu bút Đám mây</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> HTML5 Canvas • Google Apps Script • Camera</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/stamplocker" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/stamplocker/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="web" data-search="nguoi-yeu-vu-tru three.js • webgl • hand tracking aether particles v7.0 — không gian hạt vũ trụ 3d tương tác cử chỉ aether particles v7.0 // neon cosmos — gesture-controlled 3d space trải nghiệm nghệ thuật 3d webgl điều khiển hàng nghìn hạt ánh sáng thành hệ mặt trời, trái đất, sao hỏa, sao mộc và trái tim bằng cử chỉ tay qua webcam kết hợp âm nhạc. interactive three.js webgl cosmos morphing thousands of neon particles into solar system, earth, mars, jupiter, and heart formations via webcam hand-gesture controls & music.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#18</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.web">WEB</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-meteor"></i></div>
-                <div>
-                  <h4 data-i18n="repo.Nguoi_yeu_vu_tru.title">Aether Particles v7.0 — Không Gian Hạt Vũ Trụ 3D Tương Tác Cử Chỉ</h4>
-                  <span class="repo-slug">Tonykosuy/Nguoi-yeu-vu-tru</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.Nguoi_yeu_vu_tru.desc">Trải nghiệm nghệ thuật 3D WebGL điều khiển hàng nghìn hạt ánh sáng thành Hệ Mặt Trời, Trái Đất, Sao Hỏa, Sao Mộc và Trái Tim bằng cử chỉ tay qua webcam kết hợp âm nhạc.</p>
-              <div class="repo-highlights" data-i18n="repo.Nguoi_yeu_vu_tru.feat">Điều khiển Cử chỉ 2 Tay • Đồ họa Neon 3D • Nhạc nền & Thiệp Valentine</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Three.js • WebGL • Hand Tracking</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/Nguoi-yeu-vu-tru" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/Nguoi-yeu-vu-tru/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="social" data-search="taphuandangoai_t12_2025 html5 • css3 • responsive portal tập huấn dã ngoại t12/2025 — cổng thông tin ban tổ chức travel outdoor training camp dec/2025 — travel organizing committee portal trang thông tin chính thức giới thiệu mục tiêu gắn kết, cơ cấu core team và mô tả chi tiết nhiệm vụ 6 team chuyên môn (truyền thông, sân khấu, địa điểm, setup, hậu cần, hoạt náo). official onboarding portal detailing the dec/2025 outdoor training camp vision, core team leadership, and job descriptions across all 6 organizing committee sub-teams.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#19</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.social">SOCIAL</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-campground"></i></div>
-                <div>
-                  <h4 data-i18n="repo.Taphuandangoai_T12_2025.title">Tập Huấn Dã Ngoại T12/2025 — Cổng Thông Tin Ban Tổ Chức Travel</h4>
-                  <span class="repo-slug">Tonykosuy/Taphuandangoai_T12_2025</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.Taphuandangoai_T12_2025.desc">Trang thông tin chính thức giới thiệu mục tiêu gắn kết, cơ cấu Core Team và mô tả chi tiết nhiệm vụ 6 team chuyên môn (Truyền thông, Sân khấu, Địa điểm, Setup, Hậu cần, Hoạt náo).</p>
-              <div class="repo-highlights" data-i18n="repo.Taphuandangoai_T12_2025.feat">Cơ cấu 6 Team BTC • Hướng dẫn CTV/TV • Giao diện Responsive</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> HTML5 • CSS3 • Responsive Portal</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/Taphuandangoai_T12_2025" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/Taphuandangoai_T12_2025/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="hr" data-search="nusa-valo-watcher powershell • windows mutex • vbscript nusa valorant watcher — tự động điều phối tiến trình windows nusa valorant watcher — automated powershell mutex process watcher tiện ích powershell chạy ngầm không cửa sổ dùng khóa mutex hệ thống để theo dõi tiến trình valorant mỗi 3 giây, tự động dừng nusa khi vào game và khởi chạy lại sau khi thoát. silent background powershell utility guarded by a windows mutex lock that polls valorant every 3 seconds, pausing nusa during gameplay and relaunching it cleanly on exit.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#20</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.hr">HR</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-terminal"></i></div>
-                <div>
-                  <h4 data-i18n="repo.nusa_valo_watcher.title">Nusa Valorant Watcher — Tự Động Điều Phối Tiến Trình Windows</h4>
-                  <span class="repo-slug">Tonykosuy/nusa-valo-watcher</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.nusa_valo_watcher.desc">Tiện ích PowerShell chạy ngầm không cửa sổ dùng khóa Mutex hệ thống để theo dõi tiến trình Valorant mỗi 3 giây, tự động dừng Nusa khi vào game và khởi chạy lại sau khi thoát.</p>
-              <div class="repo-highlights" data-i18n="repo.nusa_valo_watcher.feat">Khóa Mutex 1 Instance • Chạy ẩn VBScript • Tự khởi chạy lại Nusa</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> PowerShell • Windows Mutex • VBScript</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/nusa-valo-watcher" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/nusa-valo-watcher/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-          <div class="github-repo-card spotlight-card" data-category="web" data-search="portfolio three.js • cannon-es • gsap • bilingual personal portfolio — website hồ sơ nghệ thuật van gogh & 21 dự án personal portfolio — interactive van gogh 3d & 21-project showcase website portfolio cá nhân chủ đề đêm đầy sao (van gogh) tích hợp hiệu ứng starlight particles, gsap anti-gravity, cv song ngữ phóng to, chứng chỉ và danh mục toàn bộ 21 dự án github. starry night themed personal portfolio featuring three.js/gsap anti-gravity tickets, bilingual vi/en switcher & welcome prompt, zoomable cvs, certificates, and all 21 github repos.">
-            <div class="spotlight-glow"></div>
-            <div class="repo-card-inner">
-              <div class="repo-card-top">
-                <span class="repo-index">#21</span>
-                <span class="repo-cat-badge" data-i18n="githubDir.cat.web">WEB</span>
-              </div>
-              <div class="repo-title-row">
-                <div class="repo-icon-box"><i class="fa-solid fa-palette"></i></div>
-                <div>
-                  <h4 data-i18n="repo.portfolio.title">Personal Portfolio — Website Hồ Sơ Nghệ Thuật Van Gogh & 21 Dự Án</h4>
-                  <span class="repo-slug">Tonykosuy/portfolio</span>
-                </div>
-              </div>
-              <p class="repo-desc" data-i18n="repo.portfolio.desc">Website portfolio cá nhân chủ đề Đêm Đầy Sao (Van Gogh) tích hợp hiệu ứng Starlight Particles, GSAP Anti-Gravity, CV song ngữ phóng to, chứng chỉ và danh mục toàn bộ 21 dự án GitHub.</p>
-              <div class="repo-highlights" data-i18n="repo.portfolio.feat">Song ngữ Việt/Anh • Lightbox CV/Chứng chỉ • 21 Dự án GitHub • Bảo vệ Media</div>
-              <div class="repo-stack-row">
-                <span class="repo-stack-pill"><i class="fa-solid fa-layer-group"></i> Three.js • Cannon-ES • GSAP • Bilingual</span>
-              </div>
-              <div class="repo-card-actions">
-                <a href="https://github.com/Tonykosuy/portfolio" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-git">
-                  <i class="fa-brands fa-github"></i> <span data-i18n="githubDir.gitBtn">GitHub Repo</span>
-                </a>
-                <a href="https://tonykosuy.github.io/portfolio/" target="_blank" rel="noopener noreferrer" class="repo-btn repo-btn-live"><i class="fa-solid fa-globe"></i> <span data-i18n="githubDir.liveBtn">Mở Web Live</span></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats Grid -->
-      <div class="stats-grid reveal" style="margin-top: 5rem; grid-column: 1 / -1; width: 100%;">
-
-        <!-- Stat Card 1 -->
-        <div class="stat-card spotlight-card floating">
-          <div class="stat-ornament stat-ornament-tl"></div>
-          <div class="stat-ornament stat-ornament-tr"></div>
-          <div class="stat-ornament stat-ornament-bl"></div>
-          <div class="stat-ornament stat-ornament-br"></div>
-          <div class="spotlight-glow"></div>
-          <div class="stat-icon"><i class="fa-solid fa-code"></i></div>
-          <div class="stat-number" data-count="21">0</div>
-          <div class="stat-label" data-i18n="portfolio.stat1">Dự án sáng lập</div>
-        </div>
-
-        <!-- Stat Card 2 -->
-        <div class="stat-card spotlight-card floating">
-          <div class="stat-ornament stat-ornament-tl"></div>
-          <div class="stat-ornament stat-ornament-tr"></div>
-          <div class="stat-ornament stat-ornament-bl"></div>
-          <div class="stat-ornament stat-ornament-br"></div>
-          <div class="spotlight-glow"></div>
-          <div class="stat-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
-          <div class="stat-number" data-count="30">0</div>
-          <div class="stat-label" data-i18n="portfolio.stat2">Quỹ gây dựng (Tr.đ)</div>
-        </div>
-
-        <!-- Stat Card 3 -->
-        <div class="stat-card spotlight-card floating">
-          <div class="stat-ornament stat-ornament-tl"></div>
-          <div class="stat-ornament stat-ornament-tr"></div>
-          <div class="stat-ornament stat-ornament-bl"></div>
-          <div class="stat-ornament stat-ornament-br"></div>
-          <div class="spotlight-glow"></div>
-          <div class="stat-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-          <div class="stat-number" data-count="51">0</div>
-          <div class="stat-label" data-i18n="portfolio.stat3">Khóa K51 UEH</div>
-        </div>
-
       </div>
     </div>
-  </section>
-
-  <!-- ===== MASONRY GALLERY — React Bits Style ===== -->
-  <section class="gallery-masonry-section has-bg glass-section" id="gallery-masonry" style="display: none;">
-    <div class="gallery-container">
-      <div class="section-header reveal">
-        <div class="section-label" data-i18n="gallery.label">Ảnh nghệ thuật</div>
-        <h2 class="section-title split-text" data-i18n-split="gallery.title"><span class="accent">MASONRY</span> GALLERY</h2>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== CONTACT — Van Gogh Background ===== -->
-  <section class="contact has-bg glass-section" id="contact">
-    <div class="contact-container">
-      <div class="section-header reveal">
-        <div class="section-label" data-i18n="contact.label">Kết nối</div>
-        <h2 class="section-title split-text" data-i18n-split="contact.title"><span class="accent">LIÊN HỆ</span> VỚI TÔI</h2>
-      </div>
-      <div class="contact-grid reveal">
-        <div class="contact-item spotlight-card">
-          <div class="spotlight-glow"></div>
-          <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
-          <div class="contact-info">
-            <h4 data-i18n="contact.emailLabel">Email</h4>
-            <p>pn852007@gmail.com</p>
-          </div>
-        </div>
-        <div class="contact-item spotlight-card">
-          <div class="spotlight-glow"></div>
-          <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
-          <div class="contact-info">
-            <h4 data-i18n="contact.phoneLabel">Điện thoại</h4>
-            <p>0342 381 843</p>
-          </div>
-        </div>
-        <div class="contact-item spotlight-card">
-          <div class="spotlight-glow"></div>
-          <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
-          <div class="contact-info">
-            <h4 data-i18n="contact.addressLabel">Địa chỉ</h4>
-            <p data-i18n="contact.addressValue">Đại học Kinh tế TP.HCM (UEH), TP. Hồ Chí Minh</p>
-          </div>
-        </div>
-        <div class="contact-item spotlight-card">
-          <div class="spotlight-glow"></div>
-          <div class="contact-icon"><i class="fa-brands fa-github"></i></div>
-          <div class="contact-info">
-            <h4 data-i18n="contact.githubLabel">GitHub</h4>
-            <p><a href="https://github.com/Tonykosuy" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;position:relative;z-index:5;">github.com/Tonykosuy</a></p>
-          </div>
-        </div>
-      </div>
-      <form class="contact-form reveal spotlight-card"
-        onsubmit="handleContactSubmit(event)">
-        <div class="spotlight-glow"></div>
-        <div style="position: relative; z-index: 1;">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="name" data-i18n="contact.formName">Họ và tên</label>
-              <input type="text" id="name" data-i18n-placeholder="contact.formNamePlaceholder" placeholder="Nhập họ tên..." required>
-            </div>
-            <div class="form-group">
-              <label for="email" data-i18n="contact.formEmail">Email</label>
-              <input type="email" id="email" data-i18n-placeholder="contact.formEmailPlaceholder" placeholder="Nhập email..." required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="subject" data-i18n="contact.formSubject">Chủ đề</label>
-            <input type="text" id="subject" data-i18n-placeholder="contact.formSubjectPlaceholder" placeholder="Nhập chủ đề...">
-          </div>
-          <div class="form-group">
-            <label for="message" data-i18n="contact.formMessage">Tin nhắn</label>
-            <textarea id="message" data-i18n-placeholder="contact.formMessagePlaceholder" placeholder="Nhập tin nhắn..." required></textarea>
-          </div>
-          <button type="submit" class="btn btn-filled" style="width:100%;justify-content:center" data-i18n-html="contact.formSubmit">
-            <i class="fa-solid fa-paper-plane"></i> Gửi Tin Nhắn
-          </button>
-        </div>
-      </form>
-    </div>
-  </section>
-
+  </div>
   <!-- ===== GLOBAL UNIVERSAL LIGHTBOX (Placed at body root so backdrop-filter never traps it!) ===== -->
   <div class="cert-lightbox" id="cert-lightbox">
     <div class="cert-lightbox-overlay" id="cert-lightbox-overlay"></div>
@@ -2222,7 +2192,7 @@
         style="color:#FF6B6B"></i> và niềm đam mê công nghệ.</p>
   </footer>
 
-  <script src="script.js?v=20261122"></script>
+  <script src="script.js?v=20261123"></script>
 </body>
 
 </html>
